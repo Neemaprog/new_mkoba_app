@@ -55,7 +55,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _loadGroups() async {
     final db = await DatabaseHelper.instance.database;
-    final groups = await db.query('groups', where: 'active = ?', whereArgs: [1]);
+    final groups = await db.query(
+      'groups',
+      where: 'active = ?',
+      whereArgs: [1],
+    );
     setState(() {
       _groups = groups;
       if (groups.isNotEmpty) {
@@ -110,11 +114,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _showMessage(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: isError ? AppTheme.errorColor : AppTheme.successColor,
-      behavior: SnackBarBehavior.floating,
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppTheme.errorColor : AppTheme.successColor,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -131,19 +137,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.go('/login'),
-                    child: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    child: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Jisajili',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold)),
-                      Text('Tengeneza akaunti yako',
-                          style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      Text(
+                        'Jisajili',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Tengeneza akaunti yako',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
                     ],
                   ),
                 ],
@@ -216,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // Chagua Kikundi
                       DropdownButtonFormField<int>(
-                        value: _selectedGroupId,
+                        initialValue: _selectedGroupId,
                         decoration: const InputDecoration(
                           labelText: 'Chagua Kikundi',
                           prefixIcon: Icon(Icons.group_outlined),
@@ -234,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // Chagua Jukumu
                       DropdownButtonFormField<String>(
-                        value: _selectedRole,
+                        initialValue: _selectedRole,
                         decoration: const InputDecoration(
                           labelText: 'Jukumu',
                           prefixIcon: Icon(Icons.badge_outlined),
@@ -258,11 +272,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Nywila',
                           prefixIcon: const Icon(Icons.lock_outlined),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined),
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
                             onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword),
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                           ),
                         ),
                       ),
@@ -276,11 +293,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Thibitisha Nywila',
                           prefixIcon: const Icon(Icons.lock_outlined),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscureConfirm
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined),
+                            icon: Icon(
+                              _obscureConfirm
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
                             onPressed: () => setState(
-                                () => _obscureConfirm = !_obscureConfirm),
+                              () => _obscureConfirm = !_obscureConfirm,
+                            ),
                           ),
                         ),
                       ),
@@ -294,7 +314,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2))
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text('JISAJILI'),
                       ),
                       const SizedBox(height: 16),
@@ -303,15 +326,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Una akaunti tayari? ',
-                              style:
-                                  TextStyle(color: AppTheme.textSecondary)),
+                          const Text(
+                            'Una akaunti tayari? ',
+                            style: TextStyle(color: AppTheme.textSecondary),
+                          ),
                           GestureDetector(
                             onTap: () => context.go('/login'),
-                            child: const Text('Ingia',
-                                style: TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'Ingia',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -329,12 +356,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String _getRoleLabel(String role) {
     switch (role) {
-      case 'ADMIN': return 'Msimamizi';
-      case 'ACCOUNTANT': return 'Mhasibu';
-      case 'CHAIRPERSON': return 'Mwenyekiti';
-      case 'SECRETARY': return 'Katibu';
-      case 'TREASURER': return 'Mweka Hazina';
-      default: return 'Mwanachama';
+      case 'ADMIN':
+        return 'Msimamizi';
+      case 'ACCOUNTANT':
+        return 'Mhasibu';
+      case 'CHAIRPERSON':
+        return 'Mwenyekiti';
+      case 'SECRETARY':
+        return 'Katibu';
+      case 'TREASURER':
+        return 'Mweka Hazina';
+      default:
+        return 'Mwanachama';
     }
   }
 }
