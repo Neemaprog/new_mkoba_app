@@ -25,7 +25,7 @@ class SavingsService {
         'SELECT SUM(amount) as total FROM savings WHERE user_id = ?',
         [userId],
       );
-      return (result.first['total'] as double?) ?? 0.0;
+      return (result.first['total'] as num?)?.toDouble() ?? 0.0;
     } catch (e) {
       return 0.0;
     }

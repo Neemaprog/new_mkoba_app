@@ -59,7 +59,7 @@ class _ReportsScreenState extends State<ReportsScreen>
       'SELECT SUM(amount) as total FROM savings WHERE user_id = ?',
       [_userId],
     );
-    _totalSavings = (savingsResult.first['total'] as double?) ?? 0.0;
+    _totalSavings = (savingsResult.first['total'] as num?)?.toDouble() ?? 0.0;
 
     // Monthly savings (last 6 months)
     final monthlySavings = await db.rawQuery(
@@ -93,9 +93,10 @@ class _ReportsScreenState extends State<ReportsScreen>
     );
 
     if (loansResult.isNotEmpty) {
-      _totalLoans = (loansResult.first['total'] as double?) ?? 0.0;
-      _totalPaid = (loansResult.first['paid'] as double?) ?? 0.0;
-      _totalRemaining = (loansResult.first['remaining'] as double?) ?? 0.0;
+      _totalLoans = (loansResult.first['total'] as num?)?.toDouble() ?? 0.0;
+      _totalPaid = (loansResult.first['paid'] as num?)?.toDouble() ?? 0.0;
+      _totalRemaining =
+          (loansResult.first['remaining'] as num?)?.toDouble() ?? 0.0;
       _activeLoans = (loansResult.first['active'] as int?) ?? 0;
       _completedLoans = (loansResult.first['completed'] as int?) ?? 0;
     }
@@ -201,7 +202,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                             alignment: BarChartAlignment.spaceAround,
                             maxY:
                                 _monthlySavings
-                                    .map((e) => (e['total'] as double?) ?? 0.0)
+                                    .map((e) => (e['total'] as num?)?.toDouble() ?? 0.0)
                                     .fold(0.0, (a, b) => a > b ? a : b) *
                                 1.2,
                             barGroups: _monthlySavings
@@ -213,7 +214,8 @@ class _ReportsScreenState extends State<ReportsScreen>
                                     barRods: [
                                       BarChartRodData(
                                         toY:
-                                            (entry.value['total'] as double?) ??
+                                            (entry.value['total'] as num?)
+                                                ?.toDouble() ??
                                             0.0,
                                         color: AppTheme.primaryColor,
                                         width: 20,
@@ -474,7 +476,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _recentTransactions.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final t = _recentTransactions[index];
                     final type = t['type']?.toString() ?? '';

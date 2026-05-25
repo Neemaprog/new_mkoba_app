@@ -35,7 +35,21 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     setState(() => _isLoading = false);
     if (result['success']) {
-      if (mounted) context.go('/dashboard');
+      // Pata role kutoka kwenye data iliyorudishwa na AuthService.login
+      final role = result['data']['role'] ?? 'MEMBER';
+      
+      if (mounted) {
+        // Angalia kama ni kiongozi/admin
+        if (role == 'ADMIN' || 
+            role == 'CHAIRPERSON' || 
+            role == 'TREASURER' || 
+            role == 'ACCOUNTANT' || 
+            role == 'SECRETARY') {
+          context.go('/admin');
+        } else {
+          context.go('/dashboard');
+        }
+      }
     } else {
       if (mounted) _showError(result['message']);
     }

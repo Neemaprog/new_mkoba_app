@@ -35,7 +35,7 @@ class LoansService {
         whereArgs: [groupId],
       );
       final interestRate = groups.isNotEmpty
-          ? (groups.first['interest_rate'] as double)
+          ? (groups.first['interest_rate'] as num).toDouble()
           : 10.0;
 
       final totalAmount = amount + (amount * interestRate / 100);

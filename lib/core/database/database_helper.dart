@@ -1,5 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -85,6 +87,8 @@ class DatabaseHelper {
         remaining_balance REAL NOT NULL,
         application_date TEXT NOT NULL,
         approval_date TEXT,
+        treasurer_confirmation_date TEXT,
+        treasurer_confirmation_reason TEXT,
         due_date TEXT,
         completion_date TEXT,
         status TEXT DEFAULT 'PENDING',
@@ -144,6 +148,24 @@ class DatabaseHelper {
       'max_loan_amount': 500000.0,
       'interest_rate': 10.0,
       'active': 1,
+      'created_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    });
+
+    // Ongeza hii baada ya default group insert
+    final String adminPassword = sha256
+        .convert(utf8.encode('admin123'))
+        .toString();
+
+    await db.insert('users', {
+      'first_name': 'System',
+      'last_name': 'Admin',
+      'email': 'admin@mkoba.com',
+      'phone_number': '0700000000',
+      'password': adminPassword,
+      'group_id': 1,
+      'role': 'ADMIN',
+      'status': 'ACTIVE',
       'created_at': DateTime.now().toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
     });
