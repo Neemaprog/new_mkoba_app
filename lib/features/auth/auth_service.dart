@@ -1,6 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'dart:math' as math;
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 import '../../core/database/database_helper.dart';
 
 class AuthService {
@@ -173,6 +176,71 @@ class AuthService {
       return {'success': true};
     } catch (e) {
       return {'success': false, 'message': 'Kuna tatizo, jaribu tena'};
+    }
+  }
+
+  // FORGOT PASSWORD
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+
+      // 1. Hakikisha mtumiaji yupo
+      final users = await db.query(
+        'users',
+        where: 'email = ?',
+        whereArgs: [email.trim().toLowerCase()],
+      );
+
+      if (users.isEmpty) {
+        return {
+          'success': false,
+          'message': 'Email hii haijasajiliwa kwenye mfumo.',
+        };
+      }
+
+      // 2. Generate random 8-character password
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      final random = math.Random();
+      final newPassword = List.generate(
+        8,
+        (index) => chars[random.nextInt(chars.length)],
+      ).join();
+
+      // 3. Update database na hashed version ya nywila mpya
+      await db.update(
+        'users',
+        {
+          'password': _hashPassword(newPassword),
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        where: 'email = ?',
+        whereArgs: [email.trim().toLowerCase()],
+      );
+
+      // 4. Tuma Email kwa kutumia SMTP ya Gmail
+
+      final String senderEmail = 'neematimotheo32@gmail.com';
+      final smtpServer = gmail(senderEmail, 'duaz xysc lijl tvlg');
+
+      final message = Message()
+        ..from = Address(senderEmail, 'Mkoba System')
+        ..recipients.add(email.trim().toLowerCase())
+        ..subject = 'Mkoba System: Nywila Mpya'
+        ..text =
+            'Habari,\n\nUmeomba kubadilishiwa nywila yako ya Mkoba System. Nywila yako mpya ni: $newPassword\n\nTafadhali tumia nywila hii kuingia na uibadilishe mara moja kwenye mipangilio ya wasifu.\n\nAsante,\nTimu ya Mkoba.';
+
+      await send(message, smtpServer);
+
+      return {
+        'success': true,
+        'message': 'Nywila mpya imetumwa kwenye email yako!',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message':
+            'Kuna tatizo la kutuma email. Hakikisha una internet na ujaribu tena.',
+      };
     }
   }
 }

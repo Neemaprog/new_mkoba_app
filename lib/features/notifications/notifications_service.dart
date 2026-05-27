@@ -24,6 +24,20 @@ class NotificationsService {
     }
   }
 
+  // Mpya: Pata arifa zote kwa ajili ya Admin
+  static Future<List<Map<String, dynamic>>> getAllNotifications() async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final notifications = await db.query(
+        'notifications',
+        orderBy: 'created_at DESC',
+      );
+      return notifications;
+    } catch (e) {
+      return [];
+    }
+  }
+
   static Future<int> getUnreadCount(int userId) async {
     try {
       final db = await DatabaseHelper.instance.database;

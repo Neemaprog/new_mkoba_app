@@ -35,21 +35,64 @@ class AdminService {
     }
   }
 
+  static Future<Map<String, dynamic>> deleteMember(int userId) async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      await db.update(
+        'users',
+        {'status': 'DELETED', 'updated_at': DateTime.now().toIso8601String()},
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+      return {'success': true, 'message': 'Mwanachama amefutwa!'};
+    } catch (e) {
+      return {'success': false, 'message': 'Kuna tatizo wakati wa kufuta'};
+    }
+  }
+
   static Future<Map<String, dynamic>> updateMemberRole(
     int userId,
     String role,
   ) async {
     try {
       final db = await DatabaseHelper.instance.database;
+      final now = DateTime.now().toIso8601String();
+
+      // 1. Tuma taarifa KABLA ya uteuzi 
+      String roleLabel = _getRoleLabel(role);
+      String message = role == 'MEMBER'
+          ? 'Umeondolewa kwenye nafasi ya uongozi na kurudishwa kuwa mwanachama wa kawaida.'
+          : 'Hongera! Umeteuliwa kuwa $roleLabel wa kikundi. Sasa unaweza kuaccess dashibodi ya uongozi.';
+
+      await NotificationsService.addNotification(
+        title: 'Mabadiliko ya Jukumu',
+        message: message,
+        type: 'SYSTEM',
+        priority: 'HIGH',
+        recipientType: 'USER',
+        userId: userId,
+      );
+
+      // 2. Fanya uteuzi/mabadiliko kwenye database
       await db.update(
         'users',
-        {'role': role, 'updated_at': DateTime.now().toIso8601String()},
+        {'role': role, 'updated_at': now},
         where: 'id = ?',
         whereArgs: [userId],
       );
       return {'success': true};
     } catch (e) {
       return {'success': false, 'message': 'Kuna tatizo'};
+    }
+  }
+
+  static String _getRoleLabel(String role) {
+    switch (role) {
+      case 'CHAIRPERSON': return 'Mwenyekiti';
+      case 'TREASURER': return 'Mweka Hazina';
+      case 'ACCOUNTANT': return 'Mhasibu';
+      case 'SECRETARY': return 'Katibu';
+      default: return 'Mwanachama';
     }
   }
 
@@ -103,8 +146,9 @@ class AdminService {
         where: 'id = ?',
         whereArgs: [loanId],
       );
-      if (loans.isEmpty)
+      if (loans.isEmpty) {
         return {'success': false, 'message': 'Mkopo haukupatikana'};
+      }
       final loan = loans.first;
 
       await db.update(
@@ -149,8 +193,9 @@ class AdminService {
         where: 'id = ?',
         whereArgs: [loanId],
       );
-      if (loans.isEmpty)
+      if (loans.isEmpty) {
         return {'success': false, 'message': 'Mkopo haukupatikana'};
+      }
       final loan = loans.first;
 
       await db.update(
@@ -210,8 +255,9 @@ class AdminService {
         where: 'id = ?',
         whereArgs: [loanId],
       );
-      if (loans.isEmpty)
+      if (loans.isEmpty) {
         return {'success': false, 'message': 'Mkopo haukupatikana'};
+      }
       final loan = loans.first;
 
       await db.update(
@@ -246,9 +292,10 @@ class AdminService {
     try {
       final db = await DatabaseHelper.instance.database;
       return await db.rawQuery('''
-        SELECT s.*, u.first_name, u.last_name
+        SELECT s.*, u.first_name, u.last_name, g.name as group_name
         FROM savings s
         LEFT JOIN users u ON s.user_id = u.id
+        LEFT JOIN groups g ON u.group_id = g.id
         ORDER BY s.contribution_date DESC
       ''');
     } catch (e) {
@@ -322,6 +369,32 @@ class AdminService {
       return {'success': true, 'message': 'Kikundi kimesasishwa!'};
     } catch (e) {
       return {'success': false, 'message': 'Kuna tatizo'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteGroup(int groupId) async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final now = DateTime.now().toIso8601String();
+      await db.transaction((txn) async {
+        // Zima kikundi
+        await txn.update(
+          'groups',
+          {'active': 0, 'updated_at': now},
+          where: 'id = ?',
+          whereArgs: [groupId],
+        );
+        // Ondoa wanachama kwenye kikundi hiki
+        await txn.update(
+          'users',
+          {'group_id': null, 'updated_at': now},
+          where: 'group_id = ?',
+          whereArgs: [groupId],
+        );
+      });
+      return {'success': true, 'message': 'Kikundi kimefutwa!'};
+    } catch (e) {
+      return {'success': false, 'message': 'Kuna tatizo wakati wa kufuta'};
     }
   }
 

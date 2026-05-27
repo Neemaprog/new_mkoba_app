@@ -233,6 +233,65 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                   ),
                 ),
               ],
+              const SizedBox(height: 12),
+
+              // Futa Mwanachama (ADMIN pekee)
+              if (_role == 'ADMIN')
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Futa Mwanachama'),
+                          content: Text(
+                            'Je, una uhakika unataka kumfuta ${member['first_name']}? Hatutaweza kurudisha rekodi hii.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('HAPANA'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.errorColor,
+                              ),
+                              child: const Text('NDIO, FUTA'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true && mounted) {
+                        Navigator.pop(context); // Funga sheet
+                        final result = await AdminService.deleteMember(
+                          member['id'] as int,
+                        );
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(result['message'] ?? 'Amefutwa'),
+                              backgroundColor: result['success']
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                            ),
+                          );
+                          _loadData();
+                        }
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.delete_forever,
+                      color: AppTheme.errorColor,
+                    ),
+                    label: const Text(
+                      'Futa Mwanachama Kabisa',
+                      style: TextStyle(color: AppTheme.errorColor),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 24),
             ],
           ),

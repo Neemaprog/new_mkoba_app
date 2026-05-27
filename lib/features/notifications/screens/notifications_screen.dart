@@ -60,7 +60,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         title: Row(
           children: [
             const Text('Arifa'),
-            if (unread > 0) ...[
+            if (unread > 0) ...{
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -77,7 +77,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                 ),
               ),
-            ],
+            },
           ],
         ),
         leading: IconButton(
@@ -142,7 +142,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       onDismissed: (_) => _delete(notification['id'] as int),
       child: GestureDetector(
         onTap: () {
-          if (!isRead) _markRead(notification['id'] as int);
+          if (!isRead) {
+            _markRead(notification['id'] as int);
+          }
           _showDetail(notification);
         },
         child: Container(

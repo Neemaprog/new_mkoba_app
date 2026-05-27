@@ -56,7 +56,9 @@ final GoRouter _router = GoRouter(
         state.matchedLocation == '/login' ||
         state.matchedLocation == '/register';
 
-    if (!isLoggedIn && !isAuthRoute) return '/login';
+    if (!isLoggedIn && !isAuthRoute) {
+      return '/login';
+    }
 
     if (isLoggedIn && isAuthRoute) {
       // Angalia role ya mtumiaji

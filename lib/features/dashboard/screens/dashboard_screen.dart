@@ -149,7 +149,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         FutureBuilder<int>(
                           future: NotificationsService.getUnreadCount(_userId),
                           builder: (context, snapshot) {
-                            if ((snapshot.data ?? 0) == 0) return const SizedBox();
+                            if ((snapshot.data ?? 0) == 0) {
+                              return const SizedBox();
+                            }
                             return Positioned(
                               right: 0,
                               top: 0,

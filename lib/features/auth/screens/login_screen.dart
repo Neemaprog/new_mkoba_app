@@ -37,13 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result['success']) {
       // Pata role kutoka kwenye data iliyorudishwa na AuthService.login
       final role = result['data']['role'] ?? 'MEMBER';
-      
+
       if (mounted) {
         // Angalia kama ni kiongozi/admin
-        if (role == 'ADMIN' || 
-            role == 'CHAIRPERSON' || 
-            role == 'TREASURER' || 
-            role == 'ACCOUNTANT' || 
+        if (role == 'ADMIN' ||
+            role == 'CHAIRPERSON' ||
+            role == 'TREASURER' ||
+            role == 'ACCOUNTANT' ||
             role == 'SECRETARY') {
           context.go('/admin');
         } else {
@@ -51,7 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } else {
-      if (mounted) _showError(result['message']);
+      if (mounted) {
+        _showError(result['message']);
+      }
     }
   }
 
@@ -61,6 +63,67 @@ class _LoginScreenState extends State<LoginScreen> {
         content: Text(message),
         backgroundColor: AppTheme.errorColor,
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Umesahau Nywila?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Weka email uliyotumia kujisajili. Tutakutumia nywila mpya.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('GHAIRI'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              if (email.isEmpty) return;
+
+              Navigator.pop(context);
+              setState(() => _isLoading = true);
+
+              final result = await AuthService.forgotPassword(email);
+
+              setState(() => _isLoading = false);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(result['message']),
+                    backgroundColor: result['success']
+                        ? AppTheme.successColor
+                        : AppTheme.errorColor,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text('TUMA NYWILA'),
+          ),
+        ],
       ),
     );
   }
@@ -154,7 +217,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : Icons.visibility_off_outlined,
                             ),
                             onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword),
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : _showForgotPasswordDialog,
+                          child: const Text(
+                            'Umesahau Nywila?',
+                            style: TextStyle(color: AppTheme.primaryColor),
                           ),
                         ),
                       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/auth_service.dart';
 import '../services/admin_service.dart';
 
 class AdminGroupsScreen extends StatefulWidget {
@@ -92,7 +91,7 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedFrequency,
+                  initialValue: selectedFrequency,
                   decoration: const InputDecoration(
                     labelText: 'Mzunguko wa Mikutano',
                     prefixIcon: Icon(Icons.calendar_month_outlined),
@@ -351,6 +350,58 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 12,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Futa Kikundi'),
+                            content: Text(
+                              'Je, una uhakika unataka kufuta kikundi "${group['name']}"? Wanachama wote wataondolewa kwenye kikundi hiki.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('GHAIRI'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.errorColor,
+                                ),
+                                child: const Text('FUTA KIKUNDI'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true && mounted) {
+                          final result = await AdminService.deleteGroup(
+                            group['id'] as int,
+                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(result['message']),
+                                backgroundColor: result['success']
+                                    ? AppTheme.successColor
+                                    : AppTheme.errorColor,
+                              ),
+                            );
+                            _loadData();
+                          }
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 16,
+                        color: AppTheme.errorColor,
+                      ),
+                      label: const Text(
+                        'Futa',
+                        style: TextStyle(color: AppTheme.errorColor),
                       ),
                     ),
                     TextButton.icon(

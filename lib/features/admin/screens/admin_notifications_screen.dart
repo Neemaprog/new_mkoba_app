@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/auth_service.dart';
 import '../../notifications/notifications_service.dart';
 import '../services/admin_service.dart';
 
@@ -16,8 +15,7 @@ class AdminNotificationsScreen extends StatefulWidget {
 class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
   List<Map<String, dynamic>> _notifications = [];
   List<Map<String, dynamic>> _members = [];
-  bool _isLoading = true;
-  int _userId = 0;
+  bool _isLoading = true; // Keep this for loading state
 
   @override
   void initState() {
@@ -27,11 +25,8 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final userInfo = await AuthService.getUserInfo();
-    _userId = int.tryParse(userInfo['id'] ?? '0') ?? 0;
-    final notifications = await NotificationsService.getUserNotifications(
-      _userId,
-    );
+    // Admin anapaswa kuona arifa zote zilizotumwa kwenye mfumo
+    final notifications = await NotificationsService.getAllNotifications();
     final members = await AdminService.getAllMembers();
     setState(() {
       _notifications = notifications;
@@ -82,7 +77,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Tuma Arifa',
+                  'Tuma taarifa',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -91,7 +86,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 TextField(
                   controller: titleController,
                   decoration: const InputDecoration(
-                    labelText: 'Kichwa cha Arifa',
+                    labelText: 'Kichwa cha Taarifa',
                     prefixIcon: Icon(Icons.title),
                   ),
                 ),
@@ -112,7 +107,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 DropdownButtonFormField<String>(
                   initialValue: selectedType,
                   decoration: const InputDecoration(
-                    labelText: 'Aina ya Arifa',
+                    labelText: 'Aina ya Taarifa',
                     prefixIcon: Icon(Icons.category_outlined),
                   ),
                   items: types
@@ -225,7 +220,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Arifa imetumwa!'),
+                          content: Text('Tarifa imetumwa!'),
                           backgroundColor: AppTheme.successColor,
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -234,7 +229,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                     }
                   },
                   icon: const Icon(Icons.send),
-                  label: const Text('TUMA ARIFA'),
+                  label: const Text('TUMA TAARIFA'),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -250,7 +245,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Arifa'),
+        title: const Text('Taarifa'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/admin'),
@@ -266,7 +261,10 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
         onPressed: _showSendNotificationDialog,
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.send, color: Colors.white),
-        label: const Text('Tuma Arifa', style: TextStyle(color: Colors.white)),
+        label: const Text(
+          'Tuma taarifa',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? const Center(
@@ -284,7 +282,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    'Hakuna arifa bado',
+                    'Hakuna taarifa bado',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 16,
@@ -321,9 +319,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
         return await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Futa Arifa'),
+            title: const Text('Futa taarifa'),
             content: const Text(
-              'Je, una uhakika unataka kufuta arifa hii? Itaondolewa pia kwa wanachama wote waliotumiwa.',
+              'Je, una uhakika unataka kufuta taarifa hii? Itaondolewa pia kwa wanachama wote waliotumiwa.',
             ),
             actions: [
               TextButton(

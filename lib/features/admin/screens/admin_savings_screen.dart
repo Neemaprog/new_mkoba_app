@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../services/admin_service.dart';
-import '../../savings/savings_service.dart';
 
 class AdminSavingsScreen extends StatefulWidget {
   const AdminSavingsScreen({super.key});
@@ -57,9 +56,7 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
     });
   }
 
-  void _showAddSavingDialog() {
-    // TODO: Implement add saving for specific member
-  }
+  void _showAddSavingDialog() {}
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +215,14 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 11,
+                  ),
+                ),
+                Text(
+                  'Kikundi: ${saving['group_name'] ?? '-'}',
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
