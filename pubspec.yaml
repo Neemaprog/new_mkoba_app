@@ -38,6 +38,12 @@ dependencies:
   # Encrypt password
   crypto: ^3.0.3
 
+  #azampay
+  flutter_secure_storage: ^9.0.0
+
+  # HTTP requests — AzamPay
+  http: ^1.2.1
+
   # Navigation
   go_router: ^14.2.7
 

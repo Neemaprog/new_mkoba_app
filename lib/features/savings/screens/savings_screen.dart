@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../savings_service.dart';
+import '../../../core/services/azampay_service.dart';
 
 class SavingsScreen extends StatefulWidget {
   const SavingsScreen({super.key});
@@ -41,7 +42,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
   void _showAddSavingDialog() {
     final amountController = TextEditingController();
     final descController = TextEditingController();
+    final phoneController = TextEditingController();
     String selectedType = 'MONTHLY_CONTRIBUTION';
+    bool useAzamPay = true;
+    bool isProcessing = false;
 
     showModalBottomSheet(
       context: context,
@@ -66,18 +70,26 @@ class _SavingsScreenState extends State<SavingsScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
+
+              // Kiasi
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Kiasi (TZS)',
                   prefixIcon: Icon(Icons.attach_money),
+                  hintText: 'mfano: 50000',
                 ),
               ),
               const SizedBox(height: 12),
+
+              // Aina ya Akiba
               DropdownButtonFormField<String>(
-                initialValue: selectedType,
-                decoration: const InputDecoration(labelText: 'Aina ya Akiba'),
+                value: selectedType,
+                decoration: const InputDecoration(
+                  labelText: 'Aina ya Akiba',
+                  prefixIcon: Icon(Icons.category_outlined),
+                ),
                 items: const [
                   DropdownMenuItem(
                     value: 'MONTHLY_CONTRIBUTION',
@@ -93,6 +105,90 @@ class _SavingsScreenState extends State<SavingsScreen> {
                 onChanged: (val) => setModalState(() => selectedType = val!),
               ),
               const SizedBox(height: 12),
+
+              // Lipa kwa AzamPay toggle
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Image.network(
+                          'https://azampay.co.tz/wp-content/uploads/2021/09/azampay-logo.png',
+                          height: 24,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.payment,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Lipa kwa AzamPay',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: useAzamPay,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (val) => setModalState(() => useAzamPay = val),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Phone number (AzamPay)
+              if (useAzamPay)
+                Column(
+                  children: [
+                    TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Nambari ya Simu',
+                        prefixIcon: Icon(Icons.phone_outlined),
+                        hintText: '0712345678',
+                        helperText: 'Airtel, Tigo, Mpesa, Halopesa',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.blue,
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Utapata ujumbe kwenye simu yako kuthibitisha malipo',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+              // Description
+              const SizedBox(height: 12),
               TextField(
                 controller: descController,
                 decoration: const InputDecoration(
@@ -101,32 +197,110 @@ class _SavingsScreenState extends State<SavingsScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Button
               ElevatedButton(
-                onPressed: () async {
-                  if (amountController.text.isEmpty) return;
-                  Navigator.pop(context);
-                  final result = await SavingsService.addSaving(
-                    userId: _userId,
-                    groupId: _groupId,
-                    amount: double.parse(amountController.text),
-                    type: selectedType,
-                    description: descController.text,
-                  );
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(result['message']),
-                        backgroundColor: result['success']
-                            ? AppTheme.successColor
-                            : AppTheme.errorColor,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    if (result['success']) _loadData();
-                  }
-                },
-                child: const Text('HIFADHI'),
+                onPressed: isProcessing
+                    ? null
+                    : () async {
+                        if (amountController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Weka kiasi'),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (useAzamPay && phoneController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Weka nambari ya simu'),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setModalState(() => isProcessing = true);
+
+                        if (useAzamPay) {
+                          // Lipa kwa AzamPay
+                          final azamResult =
+                              await AzamPayService.contributeToSavings(
+                                phoneNumber: phoneController.text.trim(),
+                                amount: double.parse(amountController.text),
+                                externalId: AzamPayService.generateExternalId(
+                                  'SAV',
+                                ),
+                              );
+
+                          if (!azamResult['success']) {
+                            setModalState(() => isProcessing = false);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(azamResult['message']),
+                                  backgroundColor: AppTheme.errorColor,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+                        }
+
+                        // Hifadhi kwenye database
+                        Navigator.pop(context);
+                        final result = await SavingsService.addSaving(
+                          userId: _userId,
+                          groupId: _groupId,
+                          amount: double.parse(amountController.text),
+                          type: selectedType,
+                          description: descController.text.isNotEmpty
+                              ? descController.text
+                              : useAzamPay
+                              ? 'Mchango kwa AzamPay'
+                              : 'Mchango wa akiba',
+                        );
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                useAzamPay
+                                    ? '✅ Malipo yametumwa! ${result['message']}'
+                                    : result['message'],
+                              ),
+                              backgroundColor: result['success']
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          if (result['success']) _loadData();
+                        }
+                      },
+                child: isProcessing
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Inatuma ombi...'),
+                        ],
+                      )
+                    : Text(useAzamPay ? 'LIPA KWA AZAMPAY' : 'HIFADHI AKIBA'),
               ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

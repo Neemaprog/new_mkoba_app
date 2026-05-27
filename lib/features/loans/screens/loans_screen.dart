@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../loans_service.dart';
+import '../../../core/services/azampay_service.dart';
 
 class LoansScreen extends StatefulWidget {
   const LoansScreen({super.key});
@@ -142,6 +143,9 @@ class _LoansScreenState extends State<LoansScreen>
 
   void _showRepayDialog(Map<String, dynamic> loan) {
     final amountController = TextEditingController();
+    final phoneController = TextEditingController();
+    bool useAzamPay = true;
+    bool isProcessing = false;
 
     showModalBottomSheet(
       context: context,
@@ -149,62 +153,260 @@ class _LoansScreenState extends State<LoansScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Lipa Mkopo',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Kilichobaki: TZS ${_formatAmount(loan['remaining_balance'])}',
-              style: const TextStyle(color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Kiasi cha Kulipa (TZS)',
-                prefixIcon: Icon(Icons.attach_money),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Lipa Mkopo',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                if (amountController.text.isEmpty) return;
-                Navigator.pop(context);
-                final result = await LoansService.repayLoan(
-                  loanId: loan['id'] as int,
-                  userId: _userId,
-                  groupId: _groupId,
-                  amount: double.parse(amountController.text),
-                );
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(result['message']),
-                      backgroundColor: result['success']
-                          ? AppTheme.successColor
-                          : AppTheme.errorColor,
-                      behavior: SnackBarBehavior.floating,
+              const SizedBox(height: 8),
+
+              // Loan Info
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Kilichobaki:',
+                      style: TextStyle(color: AppTheme.textSecondary),
                     ),
-                  );
-                  if (result['success']) _loadData();
-                }
-              },
-              child: const Text('LIPA SASA'),
-            ),
-          ],
+                    Text(
+                      'TZS ${_formatAmount(loan['remaining_balance'])}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.errorColor,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Kiasi
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Kiasi cha Kulipa (TZS)',
+                  prefixIcon: const Icon(Icons.attach_money),
+                  hintText: 'Max: ${_formatAmount(loan['remaining_balance'])}',
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // AzamPay Toggle
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Image.network(
+                          'https://azampay.co.tz/wp-content/uploads/2021/09/azampay-logo.png',
+                          height: 24,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.payment,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Lipa kwa AzamPay',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: useAzamPay,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (val) => setModalState(() => useAzamPay = val),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Phone
+              if (useAzamPay)
+                Column(
+                  children: [
+                    TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Nambari ya Simu',
+                        prefixIcon: Icon(Icons.phone_outlined),
+                        hintText: '0712345678',
+                        helperText: 'Airtel, Tigo, Mpesa, Halopesa',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.blue,
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Utapata ujumbe kwenye simu yako kuthibitisha malipo',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+              const SizedBox(height: 20),
+
+              // Button
+              ElevatedButton(
+                onPressed: isProcessing
+                    ? null
+                    : () async {
+                        if (amountController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Weka kiasi cha kulipa'),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final amount =
+                            double.tryParse(amountController.text) ?? 0;
+                        final remaining =
+                            (loan['remaining_balance'] as double? ?? 0);
+
+                        if (amount > remaining) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Kiasi kikubwa kuliko kilichobaki!',
+                              ),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (useAzamPay && phoneController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Weka nambari ya simu'),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setModalState(() => isProcessing = true);
+
+                        if (useAzamPay) {
+                          // Lipa kwa AzamPay
+                          final azamResult = await AzamPayService.repayLoan(
+                            phoneNumber: phoneController.text.trim(),
+                            amount: amount,
+                            loanId: loan['id'].toString(),
+                          );
+
+                          if (!azamResult['success']) {
+                            setModalState(() => isProcessing = false);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(azamResult['message']),
+                                  backgroundColor: AppTheme.errorColor,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+                        }
+
+                        // Hifadhi kwenye database
+                        Navigator.pop(context);
+                        final result = await LoansService.repayLoan(
+                          loanId: loan['id'] as int,
+                          userId: _userId,
+                          groupId: _groupId,
+                          amount: amount,
+                        );
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                useAzamPay
+                                    ? '✅ Malipo yametumwa! ${result['message']}'
+                                    : result['message'],
+                              ),
+                              backgroundColor: result['success']
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          if (result['success']) _loadData();
+                        }
+                      },
+                child: isProcessing
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Inatuma ombi...'),
+                        ],
+                      )
+                    : Text(useAzamPay ? 'LIPA KWA AZAMPAY' : 'LIPA MKOPO'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
