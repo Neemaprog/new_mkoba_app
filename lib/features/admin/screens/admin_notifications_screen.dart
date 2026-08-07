@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notifications/notifications_service.dart';
 import '../services/admin_service.dart';
@@ -33,11 +34,6 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
       _members = members.where((m) => m['role'] != 'ADMIN').toList();
       _isLoading = false;
     });
-  }
-
-  Future<void> _deleteNotification(int id) async {
-    await NotificationsService.deleteNotification(id);
-    _loadData();
   }
 
   void _showSendNotificationDialog() {
@@ -76,18 +72,21 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tuma taarifa',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  'send_notification_title'.tr(context),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
                 // Title
                 TextField(
                   controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Kichwa cha Taarifa',
-                    prefixIcon: Icon(Icons.title),
+                  decoration: InputDecoration(
+                    labelText: 'notification_title_label'.tr(context),
+                    prefixIcon: const Icon(Icons.title),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -96,9 +95,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 TextField(
                   controller: messageController,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Ujumbe',
-                    prefixIcon: Icon(Icons.message_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'notification_message_label'.tr(context),
+                    prefixIcon: const Icon(Icons.message_outlined),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -106,15 +105,15 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 // Type
                 DropdownButtonFormField<String>(
                   initialValue: selectedType,
-                  decoration: const InputDecoration(
-                    labelText: 'Aina ya Taarifa',
-                    prefixIcon: Icon(Icons.category_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'notification_type_label'.tr(context),
+                    prefixIcon: const Icon(Icons.category_outlined),
                   ),
                   items: types
                       .map(
                         (t) => DropdownMenuItem(
                           value: t,
-                          child: Text(_getTypeLabel(t)),
+                          child: Text(_getTypeLabel(t).tr(context)),
                         ),
                       )
                       .toList(),
@@ -125,15 +124,15 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 // Priority
                 DropdownButtonFormField<String>(
                   initialValue: selectedPriority,
-                  decoration: const InputDecoration(
-                    labelText: 'Kipaumbele',
-                    prefixIcon: Icon(Icons.priority_high),
+                  decoration: InputDecoration(
+                    labelText: 'notification_priority_label'.tr(context),
+                    prefixIcon: const Icon(Icons.priority_high),
                   ),
                   items: priorities
                       .map(
                         (p) => DropdownMenuItem(
                           value: p,
-                          child: Text(_getPriorityLabel(p)),
+                          child: Text(_getPriorityLabel(p).tr(context)),
                         ),
                       )
                       .toList(),
@@ -145,18 +144,18 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 // Recipient Type
                 DropdownButtonFormField<String>(
                   initialValue: recipientType,
-                  decoration: const InputDecoration(
-                    labelText: 'Tuma Kwa',
-                    prefixIcon: Icon(Icons.people_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'notification_recipient_label'.tr(context),
+                    prefixIcon: const Icon(Icons.people_outlined),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'ALL',
-                      child: Text('Wanachama Wote'),
+                      child: Text('recipient_all_members'.tr(context)),
                     ),
                     DropdownMenuItem(
                       value: 'USER',
-                      child: Text('Mwanachama Mmoja'),
+                      child: Text('recipient_single_member'.tr(context)),
                     ),
                   ],
                   onChanged: (val) => setModalState(() {
@@ -170,9 +169,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                 if (recipientType == 'USER')
                   DropdownButtonFormField<int>(
                     initialValue: selectedMemberId,
-                    decoration: const InputDecoration(
-                      labelText: 'Chagua Mwanachama',
-                      prefixIcon: Icon(Icons.person_outlined),
+                    decoration: InputDecoration(
+                      labelText: 'select_member_label'.tr(context),
+                      prefixIcon: const Icon(Icons.person_outlined),
                     ),
                     items: _members
                         .map(
@@ -192,17 +191,18 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                     if (titleController.text.isEmpty ||
                         messageController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tafadhali jaza kichwa na ujumbe'),
+                        SnackBar(
+                          content: Text('fill_title_and_message'.tr(context)),
                           backgroundColor: AppTheme.errorColor,
                         ),
                       );
                       return;
                     }
                     if (recipientType == 'USER' && selectedMemberId == null) {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tafadhali chagua mwanachama'),
+                        SnackBar(
+                          content: Text('select_member_warning'.tr(context)),
                           backgroundColor: AppTheme.errorColor,
                         ),
                       );
@@ -219,8 +219,10 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                     );
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tarifa imetumwa!'),
+                        SnackBar(
+                          content: Text(
+                            'notification_sent_successfully'.tr(context),
+                          ),
                           backgroundColor: AppTheme.successColor,
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -229,7 +231,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                     }
                   },
                   icon: const Icon(Icons.send),
-                  label: const Text('TUMA TAARIFA'),
+                  label: Text('send_notification_button'.tr(context)),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -245,7 +247,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Taarifa'),
+        title: Text('admin_notifications_title'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/admin'),
@@ -261,9 +263,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
         onPressed: _showSendNotificationDialog,
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.send, color: Colors.white),
-        label: const Text(
-          'Tuma taarifa',
-          style: TextStyle(color: Colors.white),
+        label: Text(
+          'send_notification_fab'.tr(context),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
       body: _isLoading
@@ -271,19 +273,19 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               child: CircularProgressIndicator(color: AppTheme.primaryColor),
             )
           : _notifications.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.notifications_none_outlined,
                     size: 80,
                     color: AppTheme.textSecondary,
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
-                    'Hakuna taarifa bado',
-                    style: TextStyle(
+                    'no_notifications_yet'.tr(context),
+                    style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 16,
                     ),
@@ -312,126 +314,84 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
         ? AppTheme.textSecondary
         : AppTheme.primaryColor;
 
-    return Dismissible(
-      key: Key(n['id'].toString()),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        return await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Futa taarifa'),
-            content: const Text(
-              'Je, una uhakika unataka kufuta taarifa hii? Itaondolewa pia kwa wanachama wote waliotumiwa.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('HAPANA'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
-                ),
-                child: const Text('NDIO, FUTA'),
-              ),
-            ],
-          ),
-        );
-      },
-      onDismissed: (_) => _deleteNotification(n['id'] as int),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.errorColor,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6),
+        ],
       ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: priorityColor.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: priorityColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(_getTypeIcon(type), color: priorityColor, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    n['title'] ?? '',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+            child: Icon(_getTypeIcon(type), color: priorityColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  n['title'] ?? '',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    n['message'] ?? '',
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 13,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  n['message'] ?? '',
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: priorityColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          _getTypeLabel(type),
-                          style: TextStyle(
-                            color: priorityColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: priorityColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        _getTypeLabel(type).tr(context),
+                        style: TextStyle(
+                          color: priorityColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        n['created_at']?.toString().substring(0, 10) ?? '',
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 11,
-                        ),
+                    ),
+                    Text(
+                      n['created_at']?.toString().substring(0, 10) ?? '',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 11,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -441,13 +401,14 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
       case 'LOAN':
         return Icons.account_balance_outlined;
       case 'CONTRIBUTION':
-        return Icons.savings_outlined;
+        return Icons.card_giftcard_outlined;
       case 'REMINDER':
-        return Icons.alarm_outlined;
+        return Icons.alarm_on_outlined;
       case 'SYSTEM':
-        return Icons.settings_outlined;
+        return Icons.computer_outlined;
+      case 'ANNOUNCEMENT':
       default:
-        return Icons.notifications_outlined;
+        return Icons.campaign_outlined;
     }
   }
 
@@ -458,9 +419,10 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
       case 'CONTRIBUTION':
         return 'Mchango';
       case 'REMINDER':
-        return 'Kumbusho';
+        return 'Kikumbusho';
       case 'SYSTEM':
         return 'Mfumo';
+      case 'ANNOUNCEMENT':
       default:
         return 'Tangazo';
     }
@@ -470,6 +432,8 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
     switch (priority) {
       case 'HIGH':
         return 'Juu';
+      case 'MEDIUM':
+        return 'Kati';
       case 'LOW':
         return 'Chini';
       default:

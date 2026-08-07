@@ -1,3 +1,7 @@
+import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../core/database/database_helper.dart';
 import '../../notifications/notifications_service.dart';
 
@@ -58,7 +62,7 @@ class AdminService {
       final db = await DatabaseHelper.instance.database;
       final now = DateTime.now().toIso8601String();
 
-      // 1. Tuma taarifa KABLA ya uteuzi 
+      // 1. Tuma taarifa KABLA ya uteuzi
       String roleLabel = _getRoleLabel(role);
       String message = role == 'MEMBER'
           ? 'Umeondolewa kwenye nafasi ya uongozi na kurudishwa kuwa mwanachama wa kawaida.'
@@ -88,11 +92,16 @@ class AdminService {
 
   static String _getRoleLabel(String role) {
     switch (role) {
-      case 'CHAIRPERSON': return 'Mwenyekiti';
-      case 'TREASURER': return 'Mweka Hazina';
-      case 'ACCOUNTANT': return 'Mhasibu';
-      case 'SECRETARY': return 'Katibu';
-      default: return 'Mwanachama';
+      case 'CHAIRPERSON':
+        return 'Mwenyekiti';
+      case 'TREASURER':
+        return 'Mweka Hazina';
+      case 'ACCOUNTANT':
+        return 'Mhasibu';
+      case 'SECRETARY':
+        return 'Katibu';
+      default:
+        return 'Mwanachama';
     }
   }
 
@@ -131,7 +140,7 @@ class AdminService {
     }
   }
 
-  // CHAIRPERSON - Approve loan
+  // TREASURER - Approve loan
   static Future<Map<String, dynamic>> approveLoan(
     int loanId,
     String reason,
@@ -154,7 +163,7 @@ class AdminService {
       await db.update(
         'loans',
         {
-          'status': 'PENDING_TREASURER_CONFIRMATION',
+          'status': 'PENDING_ADMIN_CONFIRMATION',
           'approval_date': now,
           'updated_at': now,
         },
@@ -166,7 +175,7 @@ class AdminService {
       await NotificationsService.addNotification(
         title: 'Mkopo Umeidhinishwa',
         message:
-            'Mkopo wako wa TZS ${loan['amount']} umeidhinishwa na Mwenyekiti. Unasubiri uthibitisho wa Mweka Hazina.',
+            'Mkopo wako wa TZS ${loan['amount']} umeidhinishwa na Mweka Hazina. Unasubiri uthibitisho wa Mwenyekiti.',
         type: 'LOAN',
         priority: 'HIGH',
         recipientType: 'USER',
@@ -179,7 +188,7 @@ class AdminService {
     }
   }
 
-  // TREASURER - Confirm loan
+  // ADMIN/CHAIRPERSON - Confirm loan
   static Future<Map<String, dynamic>> confirmLoan(
     int loanId,
     String reason,
@@ -202,8 +211,8 @@ class AdminService {
         'loans',
         {
           'status': 'ACTIVE',
-          'treasurer_confirmation_date': now,
-          'treasurer_confirmation_reason': reason,
+          'confirmation_date': now, // Hii ni tarehe ya uthibitisho wa mwisho
+          'confirmation_reason': reason, // Hii ni sababu ya uthibitisho
           'updated_at': now,
         },
         where: 'id = ?',
@@ -250,6 +259,7 @@ class AdminService {
       final db = await DatabaseHelper.instance.database;
       final now = DateTime.now().toIso8601String();
 
+      // Pata maelezo ya mkopo na mtumiaji
       final loans = await db.query(
         'loans',
         where: 'id = ?',
@@ -259,26 +269,27 @@ class AdminService {
         return {'success': false, 'message': 'Mkopo haukupatikana'};
       }
       final loan = loans.first;
+      final userId = loan['user_id'] as int;
 
       await db.update(
         'loans',
         {
           'status': 'REJECTED',
-          'treasurer_confirmation_reason': reason,
+          'rejection_reason': reason, // Tumia safu wima sahihi
           'updated_at': now,
         },
         where: 'id = ?',
         whereArgs: [loanId],
       );
 
-      // Tuma notification
+      // Tuma notification kwa mwombaji
       await NotificationsService.addNotification(
         title: 'Mkopo Umekataliwa',
-        message: 'Mkopo wako umekataliwa. Sababu: $reason',
+        message: 'Samahani, mkopo wako umekataliwa. Sababu: $reason',
         type: 'LOAN',
         priority: 'HIGH',
         recipientType: 'USER',
-        userId: loan['user_id'] as int,
+        userId: userId, // Hakikisha inakwenda kwa mwombaji
       );
 
       return {'success': true, 'message': 'Mkopo umekataliwa'};
@@ -424,7 +435,8 @@ class AdminService {
 
       return {
         'totalMembers': (members.first['count'] as int?) ?? 0,
-        'totalSavings': (totalSavings.first['total'] as num?)?.toDouble() ?? 0.0,
+        'totalSavings':
+            (totalSavings.first['total'] as num?)?.toDouble() ?? 0.0,
         'activeLoans': (activeLoans.first['count'] as int?) ?? 0,
         'pendingLoans': (pendingLoans.first['count'] as int?) ?? 0,
         'pendingConfirmation':
@@ -440,6 +452,71 @@ class AdminService {
         'pendingConfirmation': 0,
         'totalLoans': 0.0,
       };
+    }
+  }
+
+  // ========== REPORTS ==========
+  static Future<Map<String, dynamic>> generateSavingsCSV() async {
+    try {
+      // 1. Omba ruhusa ya kuandika kwenye hifadhi
+      if (await Permission.storage.request().isGranted) {
+        // 2. Pata data ya michango
+        final savings = await getAllSavings();
+        if (savings.isEmpty) {
+          return {'success': false, 'message': 'Hakuna data ya michango'};
+        }
+
+        // 3. Andaa data kwa ajili ya CSV
+        List<List<dynamic>> rows = [];
+        // Ongeza safu ya majina ya safu wima (headers)
+        rows.add([
+          'Contribution ID',
+          'Date',
+          'First Name',
+          'Last Name',
+          'Amount',
+          'Group',
+        ]);
+        // Ongeza data ya kila mchango
+        for (var saving in savings) {
+          rows.add([
+            saving['id'],
+            saving['contribution_date'],
+            saving['first_name'],
+            saving['last_name'],
+            saving['amount'],
+            saving['group_name'],
+          ]);
+        }
+
+        // 4. Tengeneza faili la CSV
+        String csv = const ListToCsvConverter().convert(rows);
+
+        // 5. Pata eneo la kupakulia (Downloads directory)
+        final directory = await getDownloadsDirectory();
+        if (directory == null) {
+          return {
+            'success': false,
+            'message': 'Imeshindwa kupata eneo la kupakulia',
+          };
+        }
+        final path = directory.path;
+        final fileName =
+            'savings_report_${DateTime.now().millisecondsSinceEpoch}.csv';
+        final file = File('$path/$fileName');
+
+        // 6. Andika data kwenye faili
+        await file.writeAsString(csv);
+
+        return {
+          'success': true,
+          'message': 'Ripoti imehifadhiwa kwenye Downloads: $fileName',
+        };
+      } else {
+        return {'success': false, 'message': 'Ruhusa ya hifadhi imekataliwa'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Kuna tatizo: ${e.toString()}'};
     }
   }
 }

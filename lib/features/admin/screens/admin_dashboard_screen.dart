@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../services/admin_service.dart';
+import 'package:mkoba_system/core/services/translation_extension.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -42,13 +43,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 'ADMIN':
         return true;
       case 'CHAIRPERSON':
-        return ['dashboard', 'members', 'loans', 'savings', 'reports', 'notifications'].contains(feature);
+        return [
+          'dashboard',
+          'members',
+          'loans',
+          'savings',
+          'reports',
+          'notifications',
+        ].contains(feature);
       case 'TREASURER':
-        return ['dashboard', 'members', 'loans', 'savings', 'reports', 'notifications'].contains(feature);
+        return [
+          'dashboard',
+          'members',
+          'loans',
+          'savings',
+          'reports',
+          'notifications',
+        ].contains(feature);
       case 'ACCOUNTANT':
-        return ['dashboard', 'members', 'loans', 'savings', 'reports'].contains(feature);
+        return [
+          'dashboard',
+          'members',
+          'loans',
+          'savings',
+          'reports',
+        ].contains(feature);
       case 'SECRETARY':
-        return ['dashboard', 'members', 'loans', 'reports', 'notifications'].contains(feature);
+        return [
+          'dashboard',
+          'members',
+          'loans',
+          'reports',
+          'notifications',
+        ].contains(feature);
       default:
         return false;
     }
@@ -71,7 +98,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: _isLoading
                   ? const Center(
                       child: CircularProgressIndicator(
-                          color: AppTheme.primaryColor))
+                        color: AppTheme.primaryColor,
+                      ),
+                    )
                   : RefreshIndicator(
                       onRefresh: _loadData,
                       color: AppTheme.primaryColor,
@@ -118,15 +147,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Karibu,',
-                      style:
-                          TextStyle(color: Colors.white70, fontSize: 13)),
                   Text(
-                    _userInfo['name'] ?? 'Admin',
+                    'welcome_message'.tr(context),
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  Text(
+                    _userInfo['name'] ?? 'admin_default_name'.tr(context),
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -134,7 +165,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.accentColor,
                       borderRadius: BorderRadius.circular(12),
@@ -142,9 +175,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Text(
                       _getRoleLabel(_role),
                       style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.black,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -162,13 +196,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _headerStat('Wanachama',
-                  '${_stats['totalMembers'] ?? 0}', Icons.people),
-              _headerStat('Akiba',
-                  'TZS ${_formatAmount(_stats['totalSavings'])}',
-                  Icons.savings),
-              _headerStat('Mikopo Hai',
-                  '${_stats['activeLoans'] ?? 0}', Icons.account_balance),
+              _headerStat(
+                'members_label'.tr(context),
+                '${_stats['totalMembers'] ?? 0}',
+                Icons.people,
+              ),
+              _headerStat(
+                'savings_label'.tr(context),
+                '${'currency_symbol'.tr(context)} ${_formatAmount(_stats['totalSavings'])}',
+                Icons.savings,
+              ),
+              _headerStat(
+                'active_loans_label'.tr(context),
+                '${_stats['activeLoans'] ?? 0}',
+                Icons.account_balance,
+              ),
             ],
           ),
         ],
@@ -181,14 +223,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       children: [
         Icon(icon, color: AppTheme.accentColor, size: 20),
         const SizedBox(height: 4),
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13)),
-        Text(label,
-            style:
-                const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+        Text(
+          label.tr(context),
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
+        ),
       ],
     );
   }
@@ -196,26 +242,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildStatsGrid() {
     final stats = [
       {
-        'label': 'Wanachama',
+        'label': 'members_label'.tr(context),
         'value': '${_stats['totalMembers'] ?? 0}',
         'icon': Icons.people_outlined,
         'color': AppTheme.primaryColor,
       },
       {
-        'label': 'Jumla Akiba',
-        'value': 'TZS ${_formatAmount(_stats['totalSavings'])}',
+        'label': 'total_savings_label'.tr(context),
+        'value':
+            '${'currency_symbol'.tr(context)} ${_formatAmount(_stats['totalSavings'])}',
         'icon': Icons.savings_outlined,
         'color': const Color(0xFF00695C),
       },
       {
-        'label': 'Mikopo Inayoendelea',
+        'label': 'ongoing_loans_label'.tr(context),
         'value': '${_stats['activeLoans'] ?? 0}',
         'icon': Icons.trending_up,
         'color': const Color(0xFF1565C0),
       },
       {
-        'label': 'Inasubiri',
-        'value': '${(_stats['pendingLoans'] ?? 0) + (_stats['pendingConfirmation'] ?? 0)}',
+        'label': 'pending_label'.tr(context),
+        'value':
+            '${(_stats['pendingLoans'] ?? 0) + (_stats['pendingConfirmation'] ?? 0)}',
         'icon': Icons.pending_outlined,
         'color': const Color(0xFFE65100),
       },
@@ -252,8 +300,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(stat['icon'] as IconData,
-                    color: color, size: 20),
+                child: Icon(stat['icon'] as IconData, color: color, size: 20),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,14 +308,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   Text(
                     stat['value'] as String,
                     style: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15),
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                   ),
                   Text(
                     stat['label'] as String,
                     style: const TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 11),
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -282,19 +332,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildAlerts() {
     return Column(
       children: [
-        if ((_stats['pendingLoans'] ?? 0) > 0 &&
-            (_role == 'CHAIRPERSON' || _role == 'ADMIN'))
+        if ((_stats['pendingLoans'] ?? 0) > 0 && _role == 'TREASURER')
           _buildAlertCard(
-            '⚠️ Mikopo ${_stats['pendingLoans']} Inasubiri Idhini',
-            'Inahitaji idhini yako',
+            '${'pending_loans_alert'.tr(context)} ${_stats['pendingLoans']}',
+            'needs_your_approval'.tr(context),
             const Color(0xFFE65100),
             () => context.go('/admin/loans'),
           ),
         if ((_stats['pendingConfirmation'] ?? 0) > 0 &&
-            (_role == 'TREASURER' || _role == 'ADMIN'))
+            (_role == 'CHAIRPERSON' || _role == 'ADMIN'))
           _buildAlertCard(
-            '⚠️ Mikopo ${_stats['pendingConfirmation']} Inahitaji Uthibitisho',
-            'Inahitaji uthibitisho wako',
+            '${'pending_confirmation_alert'.tr(context)} ${_stats['pendingConfirmation']}',
+            'needs_your_confirmation'.tr(context),
             const Color(0xFF1565C0),
             () => context.go('/admin/loans'),
           ),
@@ -303,7 +352,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildAlertCard(
-      String title, String subtitle, Color color, VoidCallback onTap) {
+    String title,
+    String subtitle,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -321,14 +374,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                          fontSize: 13)),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -342,35 +402,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildMenuGrid() {
     final allMenus = [
       {
-        'title': 'Wanachama',
+        'title': 'manage_members'.tr(context),
         'icon': Icons.people_outlined,
         'color': AppTheme.primaryColor,
         'route': '/admin/members',
         'feature': 'members',
       },
       {
-        'title': 'Mikopo',
+        'title': 'manage_loans'.tr(context),
         'icon': Icons.account_balance_outlined,
         'color': const Color(0xFF1565C0),
         'route': '/admin/loans',
         'feature': 'loans',
       },
       {
-        'title': 'Akiba',
+        'title': 'manage_savings'.tr(context),
         'icon': Icons.savings_outlined,
         'color': const Color(0xFF00695C),
         'route': '/admin/savings',
         'feature': 'savings',
       },
       {
-        'title': 'Ripoti',
+        'title': 'manage_reports'.tr(context),
         'icon': Icons.bar_chart_outlined,
         'color': const Color(0xFF6A1B9A),
         'route': '/admin/reports',
         'feature': 'reports',
       },
       {
-        'title': 'Arifa',
+        'title': 'manage_notifications'.tr(context),
         'icon': Icons.notifications_outlined,
         'color': const Color(0xFFE65100),
         'route': '/admin/notifications',
@@ -378,7 +438,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       },
       if (_role == 'ADMIN')
         {
-          'title': 'Vikundi',
+          'title': 'manage_groups'.tr(context),
           'icon': Icons.group_work_outlined,
           'color': const Color(0xFF00838F),
           'route': '/admin/groups',
@@ -393,12 +453,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Huduma za Usimamizi',
-          style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary),
+        Text(
+          'management_services'.tr(context),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -434,16 +495,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         color: color.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(menu['icon'] as IconData,
-                          color: color, size: 26),
+                      child: Icon(
+                        menu['icon'] as IconData,
+                        color: color,
+                        size: 26,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       menu['title'] as String,
                       style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14),
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -461,23 +526,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       selectedItemColor: AppTheme.primaryColor,
       unselectedItemColor: AppTheme.textSecondary,
       currentIndex: _selectedIndex,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashibodi'),
+          icon: const Icon(Icons.dashboard_outlined),
+          activeIcon: const Icon(Icons.dashboard),
+          label: 'admin_dashboard_label'.tr(context),
+        ),
         BottomNavigationBarItem(
-            icon: Icon(Icons.people_outlined),
-            activeIcon: Icon(Icons.people),
-            label: 'Wanachama'),
+          icon: const Icon(Icons.people_outlined),
+          activeIcon: const Icon(Icons.people),
+          label: 'members_label'.tr(context),
+        ),
         BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_outlined),
-            activeIcon: Icon(Icons.account_balance),
-            label: 'Mikopo'),
+          icon: const Icon(Icons.account_balance_outlined),
+          activeIcon: const Icon(Icons.account_balance),
+          label: 'loans_label'.tr(context),
+        ),
         BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined),
-            activeIcon: Icon(Icons.person),
-            label: 'Wasifu'),
+          icon: const Icon(Icons.person_outlined),
+          activeIcon: const Icon(Icons.person),
+          label: 'profile_label'.tr(context),
+        ),
       ],
       onTap: (index) {
         setState(() => _selectedIndex = index);
@@ -500,21 +569,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   String _getRoleLabel(String role) {
-    switch (role) {
-      case 'ADMIN': return 'Msimamizi';
-      case 'CHAIRPERSON': return 'Mwenyekiti';
-      case 'TREASURER': return 'Mweka Hazina';
-      case 'ACCOUNTANT': return 'Mhasibu';
-      case 'SECRETARY': return 'Katibu';
-      default: return role;
-    }
+    return 'role_${role.toLowerCase()}'.tr(context);
   }
 
   String _formatAmount(dynamic amount) {
     if (amount == null) return '0';
-    final num value =
-        amount is num ? amount : num.tryParse(amount.toString()) ?? 0;
-    return value.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    final num value = amount is num
+        ? amount
+        : num.tryParse(amount.toString()) ?? 0;
+    return value
+        .toStringAsFixed(0)
+        .replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
   }
 }

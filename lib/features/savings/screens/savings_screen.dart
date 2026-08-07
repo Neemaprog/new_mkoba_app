@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../savings_service.dart';
@@ -65,9 +66,12 @@ class _SavingsScreenState extends State<SavingsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Ongeza Akiba',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                'add_saving_title'.tr(context),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -75,10 +79,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Kiasi (TZS)',
-                  prefixIcon: Icon(Icons.attach_money),
-                  hintText: 'mfano: 50000',
+                decoration: InputDecoration(
+                  labelText: 'amount_label'.tr(context),
+                  prefixIcon: const Icon(Icons.attach_money),
+                  hintText: 'amount_hint'.tr(context),
                 ),
               ),
               const SizedBox(height: 12),
@@ -86,21 +90,27 @@ class _SavingsScreenState extends State<SavingsScreen> {
               // Aina ya Akiba
               DropdownButtonFormField<String>(
                 value: selectedType,
-                decoration: const InputDecoration(
-                  labelText: 'Aina ya Akiba',
-                  prefixIcon: Icon(Icons.category_outlined),
+                decoration: InputDecoration(
+                  labelText: 'saving_type_label'.tr(context),
+                  prefixIcon: const Icon(Icons.category_outlined),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'MONTHLY_CONTRIBUTION',
-                    child: Text('Mchango wa Kila Mwezi'),
+                    child: Text('monthly_contribution_option'.tr(context)),
                   ),
                   DropdownMenuItem(
                     value: 'ADDITIONAL_SAVINGS',
-                    child: Text('Akiba ya Ziada'),
+                    child: Text('additional_savings_option'.tr(context)),
                   ),
-                  DropdownMenuItem(value: 'PENALTY', child: Text('Faini')),
-                  DropdownMenuItem(value: 'BONUS', child: Text('Bonasi')),
+                  DropdownMenuItem(
+                    value: 'PENALTY',
+                    child: Text('penalty_option'.tr(context)),
+                  ),
+                  DropdownMenuItem(
+                    value: 'BONUS',
+                    child: Text('bonus_option'.tr(context)),
+                  ),
                 ],
                 onChanged: (val) => setModalState(() => selectedType = val!),
               ),
@@ -127,9 +137,9 @@ class _SavingsScreenState extends State<SavingsScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Lipa kwa AzamPay',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Text(
+                          'pay_with_azampay_label'.tr(context),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -150,11 +160,11 @@ class _SavingsScreenState extends State<SavingsScreen> {
                     TextField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Nambari ya Simu',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                        hintText: '0712345678',
-                        helperText: 'Airtel, Tigo, Mpesa, Halopesa',
+                      decoration: InputDecoration(
+                        labelText: 'phone_number_label'.tr(context),
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        hintText: 'phone_number_hint'.tr(context),
+                        helperText: 'payment_providers_helper'.tr(context),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -164,18 +174,18 @@ class _SavingsScreenState extends State<SavingsScreen> {
                         color: Colors.blue[50],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.info_outline,
                             size: 16,
                             color: Colors.blue,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Utapata ujumbe kwenye simu yako kuthibitisha malipo',
-                              style: TextStyle(
+                              'payment_confirmation_message'.tr(context),
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.blue,
                               ),
@@ -191,9 +201,9 @@ class _SavingsScreenState extends State<SavingsScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: descController,
-                decoration: const InputDecoration(
-                  labelText: 'Maelezo (hiari)',
-                  prefixIcon: Icon(Icons.note_outlined),
+                decoration: InputDecoration(
+                  labelText: 'description_label_optional'.tr(context),
+                  prefixIcon: const Icon(Icons.note_outlined),
                 ),
               ),
               const SizedBox(height: 20),
@@ -205,8 +215,8 @@ class _SavingsScreenState extends State<SavingsScreen> {
                     : () async {
                         if (amountController.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Weka kiasi'),
+                            SnackBar(
+                              content: Text('enter_amount_message'.tr(context)),
                               backgroundColor: AppTheme.errorColor,
                             ),
                           );
@@ -215,8 +225,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
 
                         if (useAzamPay && phoneController.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Weka nambari ya simu'),
+                            SnackBar(
+                              content: Text(
+                                'enter_phone_number_message'.tr(context),
+                              ),
                               backgroundColor: AppTheme.errorColor,
                             ),
                           );
@@ -229,12 +241,12 @@ class _SavingsScreenState extends State<SavingsScreen> {
                           // Lipa kwa AzamPay
                           final azamResult =
                               await AzamPayService.contributeToSavings(
-                                phoneNumber: phoneController.text.trim(),
-                                amount: double.parse(amountController.text),
-                                externalId: AzamPayService.generateExternalId(
-                                  'SAV',
-                                ),
-                              );
+                            phoneNumber: phoneController.text.trim(),
+                            amount: double.parse(amountController.text),
+                            externalId: AzamPayService.generateExternalId(
+                              'SAV',
+                            ),
+                          );
 
                           if (!azamResult['success']) {
                             setModalState(() => isProcessing = false);
@@ -261,8 +273,8 @@ class _SavingsScreenState extends State<SavingsScreen> {
                           description: descController.text.isNotEmpty
                               ? descController.text
                               : useAzamPay
-                              ? 'Mchango kwa AzamPay'
-                              : 'Mchango wa akiba',
+                                  ? 'contribution_with_azampay'.tr(context)
+                                  : 'savings_contribution'.tr(context),
                         );
 
                         if (mounted) {
@@ -270,7 +282,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
                             SnackBar(
                               content: Text(
                                 useAzamPay
-                                    ? '✅ Malipo yametumwa! ${result['message']}'
+                                    ? '✅ ${'payment_sent_message'.tr(context)} ${result['message']}'
                                     : result['message'],
                               ),
                               backgroundColor: result['success']
@@ -283,10 +295,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
                         }
                       },
                 child: isProcessing
-                    ? const Row(
+                    ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             height: 18,
                             width: 18,
                             child: CircularProgressIndicator(
@@ -294,11 +306,15 @@ class _SavingsScreenState extends State<SavingsScreen> {
                               strokeWidth: 2,
                             ),
                           ),
-                          SizedBox(width: 10),
-                          Text('Inatuma ombi...'),
+                          const SizedBox(width: 10),
+                          Text('sending_request_message'.tr(context)),
                         ],
                       )
-                    : Text(useAzamPay ? 'LIPA KWA AZAMPAY' : 'HIFADHI AKIBA'),
+                    : Text(
+                        useAzamPay
+                            ? 'pay_with_azampay_button'.tr(context)
+                            : 'save_button'.tr(context),
+                      ),
               ),
               const SizedBox(height: 8),
             ],
@@ -313,7 +329,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Akiba Zangu'),
+        title: Text('my_savings_title'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/dashboard'),
@@ -323,7 +339,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
         onPressed: _showAddSavingDialog,
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Ongeza', style: TextStyle(color: Colors.white)),
+        label: Text(
+          'add_button'.tr(context),
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? const Center(
@@ -351,9 +370,9 @@ class _SavingsScreenState extends State<SavingsScreen> {
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            'Jumla ya Akiba',
-                            style: TextStyle(
+                          Text(
+                            'total_savings_label'.tr(context),
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
@@ -368,7 +387,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
                             ),
                           ),
                           Text(
-                            'Michango ${_savings.length}',
+                            '${'contributions_label'.tr(context)} ${_savings.length}',
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
@@ -380,20 +399,20 @@ class _SavingsScreenState extends State<SavingsScreen> {
                     const SizedBox(height: 20),
 
                     if (_savings.isEmpty)
-                      const Center(
+                      Center(
                         child: Padding(
-                          padding: EdgeInsets.all(40),
+                          padding: const EdgeInsets.all(40),
                           child: Column(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.savings_outlined,
                                 size: 80,
                                 color: AppTheme.textSecondary,
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
                               Text(
-                                'Hakuna akiba bado',
-                                style: TextStyle(
+                                'no_savings_yet_message'.tr(context),
+                                style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 16,
                                 ),
@@ -407,7 +426,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: _savings.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final s = _savings[index];
                           return Container(
@@ -438,7 +457,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        s['description'] ?? 'Akiba',
+                                        s['description'] ??
+                                            'savings_default_description'.tr(
+                                              context,
+                                            ),
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -478,12 +500,9 @@ class _SavingsScreenState extends State<SavingsScreen> {
 
   String _formatAmount(dynamic amount) {
     if (amount == null) return '0';
-    final num value = amount is num
-        ? amount
-        : num.tryParse(amount.toString()) ?? 0;
-    return value
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    final num value =
+        amount is num ? amount : num.tryParse(amount.toString()) ?? 0;
+    return value.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
         );

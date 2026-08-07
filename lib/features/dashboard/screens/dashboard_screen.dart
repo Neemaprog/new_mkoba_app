@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../../../features/savings/savings_service.dart';
@@ -106,12 +107,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Karibu,',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  Text(
+                    'welcome_message'.tr(context),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   Text(
-                    _userInfo['name'] ?? 'Mtumiaji',
+                    _userInfo['name'] ?? 'default_user'.tr(context),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -132,7 +133,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      _userInfo['role'] ?? 'MEMBER',
+                      _getTranslatedRole(_userInfo['role'] ?? 'MEMBER'),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -145,7 +146,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onPressed: () => context.go('/notifications'),
                     icon: Stack(
                       children: [
-                        const Icon(Icons.notifications_outlined, color: Colors.white),
+                        const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                        ),
                         FutureBuilder<int>(
                           future: NotificationsService.getUnreadCount(_userId),
                           builder: (context, snapshot) {
@@ -189,9 +193,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             child: Column(
               children: [
-                const Text(
-                  'Jumla ya Akiba',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                Text(
+                  'total_savings_label'.tr(context),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -207,14 +211,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _miniStat(
-                      'Mikopo',
+                      'loans_label'.tr(context),
                       'TZS ${_formatAmount(_totalLoans)}',
                       Icons.trending_up,
                     ),
                     Container(width: 1, height: 40, color: Colors.white24),
                     _miniStat(
-                      'Jukumu',
-                      _userInfo['role'] ?? 'MEMBER',
+                      'role_label'.tr(context),
+                      _getTranslatedRole(_userInfo['role'] ?? 'MEMBER'),
                       Icons.person,
                     ),
                   ],
@@ -248,15 +252,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  String _getTranslatedRole(String role) {
+    switch (role.toUpperCase()) {
+      case 'ADMIN':
+        return 'role_admin'.tr(context);
+      case 'CHAIRPERSON':
+        return 'role_chairperson'.tr(context);
+      case 'TREASURER':
+        return 'role_treasurer'.tr(context);
+      case 'ACCOUNTANT':
+        return 'role_accountant'.tr(context);
+      case 'SECRETARY':
+        return 'role_secretary'.tr(context);
+      case 'MEMBER':
+        return 'role_member'.tr(context);
+      default:
+        return role;
+    }
+  }
+
   Widget _buildContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Huduma',
-            style: TextStyle(
+          Text(
+            'services_title'.tr(context),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
@@ -272,31 +295,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             childAspectRatio: 1.2,
             children: [
               _menuCard(
-                'Akiba',
+                'savings_menu'.tr(context),
                 Icons.savings_outlined,
                 AppTheme.primaryColor,
                 () => context.go('/savings'),
               ),
               _menuCard(
-                'Mikopo',
+                'loans_menu'.tr(context),
                 Icons.account_balance_outlined,
                 const Color(0xFF1565C0),
                 () => context.go('/loans'),
               ),
               _menuCard(
-                'Malipo',
+                'payments_menu'.tr(context),
                 Icons.receipt_long_outlined,
                 const Color(0xFF6A1B9A),
                 () => context.go('/transactions'),
               ),
               _menuCard(
-                'Kikundi',
+                'group_menu'.tr(context),
                 Icons.group_outlined,
                 const Color(0xFFE65100),
                 () => context.go('/groups'),
               ),
               _menuCard(
-                'Ripoti',
+                'reports_menu'.tr(context),
                 Icons.bar_chart_outlined,
                 const Color(0xFF00695C),
                 () => context.go('/reports'),
@@ -362,26 +385,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       selectedItemColor: AppTheme.primaryColor,
       unselectedItemColor: AppTheme.textSecondary,
       currentIndex: 0,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
-          label: 'Nyumbani',
+          icon: const Icon(Icons.home_outlined),
+          activeIcon: const Icon(Icons.home),
+          label: 'nav_home'.tr(context),
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.savings_outlined),
-          activeIcon: Icon(Icons.savings),
-          label: 'Akiba',
+          icon: const Icon(Icons.savings_outlined),
+          activeIcon: const Icon(Icons.savings),
+          label: 'nav_savings'.tr(context),
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.account_balance_outlined),
-          activeIcon: Icon(Icons.account_balance),
-          label: 'Mikopo',
+          icon: const Icon(Icons.account_balance_outlined),
+          activeIcon: const Icon(Icons.account_balance),
+          label: 'nav_loans'.tr(context),
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.person_outlined),
-          activeIcon: Icon(Icons.person),
-          label: 'Wasifu',
+          icon: const Icon(Icons.person_outlined),
+          activeIcon: const Icon(Icons.person),
+          label: 'nav_profile'.tr(context),
         ),
       ],
       onTap: (index) {

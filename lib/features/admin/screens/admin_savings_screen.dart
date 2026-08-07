@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/auth_service.dart';
 import '../services/admin_service.dart';
 
 class AdminSavingsScreen extends StatefulWidget {
@@ -16,8 +16,8 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
   List<Map<String, dynamic>> _filtered = [];
   bool _isLoading = true;
   double _totalSavings = 0.0;
-  String _role = 'ADMIN';
-  String _searchQuery = '';
+
+  bool _isDownloading = false;
 
   @override
   void initState() {
@@ -27,8 +27,6 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final userInfo = await AuthService.getUserInfo();
-    _role = userInfo['role'] ?? 'ADMIN';
     final savings = await AdminService.getAllSavings();
     double total = 0;
     for (var s in savings) {
@@ -44,7 +42,6 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
 
   void _search(String query) {
     setState(() {
-      _searchQuery = query;
       if (query.isEmpty) {
         _filtered = _savings;
       } else {
@@ -56,19 +53,39 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
     });
   }
 
-  void _showAddSavingDialog() {}
+  Future<void> _downloadReport() async {
+    setState(() => _isDownloading = true);
+
+    final result = await AdminService.generateSavingsCSV();
+
+    if (mounted) {
+      setState(() => _isDownloading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] as String),
+          backgroundColor: result['success']
+              ? AppTheme.successColor
+              : AppTheme.errorColor,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Akiba — Kikundi Chote'),
+        title: Text('savings_all_groups'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/admin'),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.download_outlined, color: Colors.white),
+            onPressed: _isDownloading ? null : _downloadReport,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadData,
@@ -79,88 +96,119 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryColor),
             )
-          : Column(
+          : Stack(
               children: [
-                // Total Card
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryColor, AppTheme.primaryLight],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Jumla ya Akiba — Kikundi Chote',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'TZS ${_formatAmount(_totalSavings)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                Column(
+                  children: [
+                    // Total Card
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.primaryLight,
+                          ],
                         ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Michango ${_savings.length}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Search
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TextField(
-                    onChanged: _search,
-                    decoration: InputDecoration(
-                      hintText: 'Tafuta mwanachama...',
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      child: Column(
+                        children: [
+                          Text(
+                            'total_savings_all_groups'.tr(context),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'TZS ${_formatAmount(_totalSavings)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${'contributions'.tr(context)}: ${_savings.length}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
 
-                // List
-                Expanded(
-                  child: _filtered.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'Hakuna akiba',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                    // Search
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        onChanged: _search,
+                        decoration: InputDecoration(
+                          hintText: 'search_member_hint'.tr(context),
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: _loadData,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _filtered.length,
-                            itemBuilder: (context, index) =>
-                                _buildCard(_filtered[index]),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // List
+                    Expanded(
+                      child: _filtered.isEmpty
+                          ? Center(
+                              child: Text(
+                                'no_savings_found'.tr(context),
+                                style: const TextStyle(
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            )
+                          : RefreshIndicator(
+                              onRefresh: _loadData,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                itemCount: _filtered.length,
+                                itemBuilder: (context, index) =>
+                                    _buildCard(_filtered[index]),
+                              ),
+                            ),
+                    ),
+                  ],
                 ),
+                if (_isDownloading)
+                  Container(
+                    color: Colors.black.withOpacity(0.5),
+                    child: const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: Colors.white),
+                          SizedBox(height: 16),
+                          Text(
+                            'Downloading report...',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
     );
@@ -203,7 +251,7 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
                   ),
                 ),
                 Text(
-                  saving['description'] ?? 'Mchango wa Akiba',
+                  saving['description'] ?? 'savings_contribution'.tr(context),
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,
@@ -218,7 +266,7 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
                   ),
                 ),
                 Text(
-                  'Kikundi: ${saving['group_name'] ?? '-'}',
+                  '${'group'.tr(context)}: ${saving['group_name'] ?? '-'}',
                   style: const TextStyle(
                     color: AppTheme.primaryColor,
                     fontSize: 11,
@@ -264,13 +312,13 @@ class _AdminSavingsScreenState extends State<AdminSavingsScreen> {
   String _getSavingTypeLabel(String type) {
     switch (type) {
       case 'MONTHLY_CONTRIBUTION':
-        return 'Mchango';
+        return 'monthly_contribution_option'.tr(context);
       case 'ADDITIONAL_SAVINGS':
-        return 'Ziada';
+        return 'additional_savings_option'.tr(context);
       case 'PENALTY':
-        return 'Faini';
+        return 'penalty_option'.tr(context);
       case 'BONUS':
-        return 'Bonasi';
+        return 'bonus_option'.tr(context);
       default:
         return type;
     }

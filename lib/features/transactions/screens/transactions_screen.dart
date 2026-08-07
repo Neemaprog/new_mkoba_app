@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../transactions_service.dart';
+
+
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -15,10 +18,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   List<Map<String, dynamic>> _transactions = [];
   List<Map<String, dynamic>> _filtered = [];
   bool _isLoading = true;
-  String _selectedFilter = 'Zote';
+  String _selectedFilter = 'all_filter';
   int _userId = 0;
 
-  final List<String> _filters = ['Zote', 'Akiba', 'Mkopo', 'Malipo'];
+  final List<String> _filters = [
+  'all_filter',
+  'savings_filter',
+  'loan_filter',
+  'payment_filter',
+  ];
 
   @override
   void initState() {
@@ -39,21 +47,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   void _applyFilter(String filter) {
-    setState(() {
-      _selectedFilter = filter;
-      if (filter == 'Zote') {
-        _filtered = _transactions;
-      } else {
-        final Map<String, List<String>> filterMap = {
-          'Akiba': ['SAVINGS_CONTRIBUTION'],
-          'Mkopo': ['LOAN_DISBURSEMENT'],
-          'Malipo': ['LOAN_REPAYMENT', 'PENALTY_PAYMENT', 'FEE'],
-        };
-        final types = filterMap[filter] ?? [];
-        _filtered = _transactions
-            .where((t) => types.contains(t['type']))
-            .toList();
-      }
+   setState(() {
+    _selectedFilter = filter;
+    if (filter == 'all_filter') {
+      _filtered = _transactions;
+    } else {
+      final Map<String, List<String>> filterMap = {
+        'savings_filter': ['SAVINGS_CONTRIBUTION'],
+        'loan_filter': ['LOAN_DISBURSEMENT'],
+        'payment_filter': ['LOAN_REPAYMENT', 'PENALTY_PAYMENT', 'FEE'],
+      };
+      final types = filterMap[filter] ?? [];
+      _filtered = _transactions
+          .where((t) => types.contains(t['type']))
+          .toList();
+    }
     });
   }
 
@@ -62,11 +70,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Historia ya Malipo'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => context.go('/dashboard'),
-        ),
+  title: Text('transaction_history_title'.tr(context)),
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+    onPressed: () => context.go('/dashboard'),
+  ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -113,7 +121,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                 ),
                               ),
                               child: Text(
-                                filter,
+                                filter.tr(context),
                                 style: TextStyle(
                                   color: isSelected
                                       ? Colors.white
@@ -134,19 +142,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 // List
                 Expanded(
                   child: _filtered.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.receipt_long_outlined,
                                 size: 80,
                                 color: AppTheme.textSecondary,
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
                               Text(
-                                'Hakuna historia ya malipo',
-                                style: TextStyle(
+                                'no_transactions'.tr(context),
+                                style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 16,
                                 ),
@@ -178,16 +186,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     String label;
     if (type.contains('SAVINGS')) {
       icon = Icons.savings_outlined;
-      label = 'Mchango wa Akiba';
+      label = 'savings_contribution_label'.tr(context);
     } else if (type.contains('DISBURSEMENT')) {
       icon = Icons.account_balance_outlined;
-      label = 'Mkopo Uliotolewa';
+      label = 'loan_disbursement_label'.tr(context);
     } else if (type.contains('REPAYMENT')) {
       icon = Icons.payment_outlined;
-      label = 'Malipo ya Mkopo';
+      label = 'loan_repayment_label'.tr(context);
     } else {
       icon = Icons.swap_horiz;
-      label = 'Malipo';
+      label = 'payment_label'.tr(context);
+    }
+
+    String description = t['description'] ?? '';
+    if (description.toLowerCase() == 'savings contribution') {
+      description = 'savings_contribution_label'.tr(context);
     }
 
     return Container(
@@ -228,7 +241,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  t['description'] ?? '',
+                  description,
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,

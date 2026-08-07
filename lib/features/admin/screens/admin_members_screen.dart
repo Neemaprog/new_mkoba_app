@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../services/admin_service.dart';
@@ -19,11 +20,11 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
   String _role = 'ADMIN';
 
   final List<String> _roles = [
-    'MEMBER',
-    'CHAIRPERSON',
-    'TREASURER',
-    'ACCOUNTANT',
-    'SECRETARY',
+    'role_member',
+    'role_chairperson',
+    'role_treasurer',
+    'role_accountant',
+    'role_secretary',
   ];
 
   @override
@@ -105,7 +106,7 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    _roleBadge(member['role'] ?? 'MEMBER'),
+                    _roleBadge(member['role'] ?? 'role_member'.tr(context)),
                   ],
                 ),
               ),
@@ -114,44 +115,53 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
               const SizedBox(height: 12),
 
               // Maelezo
-              _detailRow(Icons.email_outlined, 'Email', member['email'] ?? ''),
+              _detailRow(
+                Icons.email_outlined,
+                'email'.tr(context),
+                member['email'] ?? '',
+              ),
               _detailRow(
                 Icons.phone_outlined,
-                'Simu',
+                'phone'.tr(context),
                 member['phone_number'] ?? '',
               ),
               _detailRow(
                 Icons.group_outlined,
-                'Kikundi',
+                'group'.tr(context),
                 member['group_name'] ?? '-',
               ),
               _detailRow(
                 Icons.circle,
-                'Hali',
-                member['status'] == 'ACTIVE' ? 'Amewashwa' : 'Amezuiwa',
+                'status'.tr(context),
+                member['status'] == 'ACTIVE'
+                    ? 'active'.tr(context)
+                    : 'inactive'.tr(context),
               ),
               const SizedBox(height: 20),
 
               // Actions — ADMIN/SECRETARY wanaweza kubadilisha
               if (_role == 'ADMIN' || _role == 'SECRETARY') ...[
-                const Text(
-                  'Mabadiliko',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                Text(
+                  'actions'.tr(context),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 12),
 
                 // Badilisha Role
                 DropdownButtonFormField<String>(
-                  initialValue: member['role'],
-                  decoration: const InputDecoration(
-                    labelText: 'Badilisha Jukumu',
-                    prefixIcon: Icon(Icons.badge_outlined),
+                  initialValue: 'role_${member['role']?.toLowerCase()}',
+                  decoration: InputDecoration(
+                    labelText: 'change_role'.tr(context),
+                    prefixIcon: const Icon(Icons.badge_outlined),
                   ),
                   items: _roles
                       .map(
                         (r) => DropdownMenuItem(
                           value: r,
-                          child: Text(_getRoleLabel(r)),
+                          child: Text(r.tr(context)),
                         ),
                       )
                       .toList(),
@@ -160,17 +170,17 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                       Navigator.pop(context);
                       final result = await AdminService.updateMemberRole(
                         member['id'] as int,
-                        val,
+                        val.split('_').last.toUpperCase(),
                       );
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              result['success']
-                                  ? 'Jukumu limebadilishwa!'
-                                  : result['message'],
+                              result['success'] == true
+                                  ? 'role_changed_success'.tr(context)
+                                  : (result['message'] ?? 'Error').toString(),
                             ),
-                            backgroundColor: result['success']
+                            backgroundColor: result['success'] == true
                                 ? AppTheme.successColor
                                 : AppTheme.errorColor,
                             behavior: SnackBarBehavior.floating,
@@ -200,13 +210,14 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              result['success']
+                              result['success'] == true
                                   ? newStatus == 'ACTIVE'
-                                        ? 'Mwanachama amewashwa!'
-                                        : 'Mwanachama amezuiwa!'
-                                  : result['message'],
+                                        ? 'member_activated_success'.tr(context)
+                                      : 'member_deactivated_success'
+                                          .tr(context)
+                                  : (result['message'] ?? 'Error').toString(),
                             ),
-                            backgroundColor: result['success']
+                            backgroundColor: result['success'] == true
                                 ? AppTheme.successColor
                                 : AppTheme.errorColor,
                             behavior: SnackBarBehavior.floating,
@@ -222,8 +233,8 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                     ),
                     label: Text(
                       member['status'] == 'ACTIVE'
-                          ? 'Zuia Mwanachama'
-                          : 'Washa Mwanachama',
+                          ? 'deactivate_member'.tr(context)
+                          : 'activate_member'.tr(context),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: member['status'] == 'ACTIVE'
@@ -244,21 +255,21 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Futa Mwanachama'),
+                          title: Text('delete_member_title'.tr(context)),
                           content: Text(
-                            'Je, una uhakika unataka kumfuta ${member['first_name']}? Hatutaweza kurudisha rekodi hii.',
+                            '${'delete_member_confirmation'.tr(context)} ${member['first_name']}? ${'delete_member_irreversible'.tr(context)}',
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const Text('HAPANA'),
+                              child: Text('no_button'.tr(context)),
                             ),
                             ElevatedButton(
                               onPressed: () => Navigator.pop(context, true),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.errorColor,
                               ),
-                              child: const Text('NDIO, FUTA'),
+                              child: Text('yes_delete_button'.tr(context)),
                             ),
                           ],
                         ),
@@ -272,8 +283,12 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(result['message'] ?? 'Amefutwa'),
-                              backgroundColor: result['success']
+                              content: Text(
+                                (result['message'] ??
+                                        'deleted_successfully'.tr(context))
+                                    .toString(),
+                              ),
+                              backgroundColor: result['success'] == true
                                   ? AppTheme.successColor
                                   : AppTheme.errorColor,
                             ),
@@ -286,9 +301,9 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                       Icons.delete_forever,
                       color: AppTheme.errorColor,
                     ),
-                    label: const Text(
-                      'Futa Mwanachama Kabisa',
-                      style: TextStyle(color: AppTheme.errorColor),
+                    label: Text(
+                      'delete_member_permanently'.tr(context),
+                      style: const TextStyle(color: AppTheme.errorColor),
                     ),
                   ),
                 ),
@@ -305,7 +320,9 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text('Wanachama (${_members.length})'),
+        title: Text(
+          '${'admin_members_title'.tr(context)} (${_members.length})',
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/admin'),
@@ -330,7 +347,7 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                   child: TextField(
                     onChanged: _search,
                     decoration: InputDecoration(
-                      hintText: 'Tafuta mwanachama...',
+                      hintText: 'search_member_hint'.tr(context),
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
@@ -357,19 +374,19 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                 // Members List
                 Expanded(
                   child: _filtered.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.people_outline,
                                 size: 80,
                                 color: AppTheme.textSecondary,
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
                               Text(
-                                'Hakuna wanachama',
-                                style: TextStyle(
+                                'no_members_found'.tr(context),
+                                style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 16,
                                 ),
@@ -394,6 +411,7 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
 
   Widget _buildMemberCard(Map<String, dynamic> member) {
     final isActive = member['status'] == 'ACTIVE';
+
     return GestureDetector(
       onTap: () => _showMemberDetails(member),
       child: Container(
@@ -403,10 +421,7 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6),
           ],
         ),
         child: Row(
@@ -457,7 +472,7 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _roleBadge(member['role'] ?? 'MEMBER'),
+                _roleBadge(member['role'] ?? 'role_member'.tr(context)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -466,12 +481,14 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: isActive
-                        ? AppTheme.successColor.withValues(alpha: 0.1)
-                        : AppTheme.errorColor.withValues(alpha: 0.1),
+                        ? AppTheme.successColor.withOpacity(0.1)
+                        : AppTheme.errorColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    isActive ? 'Amewashwa' : 'Amezuiwa',
+                    isActive
+                        ? 'status_active'.tr(context)
+                        : 'status_inactive'.tr(context),
                     style: TextStyle(
                       color: isActive
                           ? AppTheme.successColor
@@ -493,13 +510,13 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+        color: Theme.of(context).primaryColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        _getRoleLabel(role),
-        style: const TextStyle(
-          color: AppTheme.primaryColor,
+        'role_${role.toLowerCase()}'.tr(context),
+        style: TextStyle(
+          color: Theme.of(context).primaryColor,
           fontSize: 10,
           fontWeight: FontWeight.bold,
         ),
@@ -530,19 +547,6 @@ class _AdminMembersScreenState extends State<AdminMembersScreen> {
   }
 
   String _getRoleLabel(String role) {
-    switch (role) {
-      case 'ADMIN':
-        return 'Msimamizi';
-      case 'CHAIRPERSON':
-        return 'Mwenyekiti';
-      case 'TREASURER':
-        return 'Mweka Hazina';
-      case 'ACCOUNTANT':
-        return 'Mhasibu';
-      case 'SECRETARY':
-        return 'Katibu';
-      default:
-        return 'Mwanachama';
-    }
+    return 'role_${role.toLowerCase()}'.tr(context);
   }
 }

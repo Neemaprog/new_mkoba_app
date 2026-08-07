@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../services/admin_service.dart';
 
@@ -67,7 +68,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  group == null ? 'Unda Kikundi Kipya' : 'Hariri Kikundi',
+                  group == null
+                      ? 'create_new_group'.tr(context)
+                      : 'edit_group'.tr(context),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -76,31 +79,31 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                 const SizedBox(height: 20),
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Jina la Kikundi',
-                    prefixIcon: Icon(Icons.group_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'group_name'.tr(context),
+                    prefixIcon: const Icon(Icons.group_outlined),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: descController,
-                  decoration: const InputDecoration(
-                    labelText: 'Maelezo',
-                    prefixIcon: Icon(Icons.description_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'description'.tr(context),
+                    prefixIcon: const Icon(Icons.description_outlined),
                   ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedFrequency,
-                  decoration: const InputDecoration(
-                    labelText: 'Mzunguko wa Mikutano',
-                    prefixIcon: Icon(Icons.calendar_month_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'meeting_frequency'.tr(context),
+                    prefixIcon: const Icon(Icons.calendar_month_outlined),
                   ),
                   items: frequencies
                       .map(
                         (f) => DropdownMenuItem(
                           value: f,
-                          child: Text(_getFrequencyLabel(f)),
+                          child: Text(_getFrequencyLabel(f).tr(context)),
                         ),
                       )
                       .toList(),
@@ -111,27 +114,27 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                 TextField(
                   controller: contributionController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Mchango wa Kila Mwezi (TZS)',
-                    prefixIcon: Icon(Icons.attach_money),
+                  decoration: InputDecoration(
+                    labelText: 'monthly_contribution_tzs'.tr(context),
+                    prefixIcon: const Icon(Icons.attach_money),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: maxLoanController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Mkopo wa Juu (TZS)',
-                    prefixIcon: Icon(Icons.account_balance_outlined),
+                  decoration: InputDecoration(
+                    labelText: 'max_loan_tzs'.tr(context),
+                    prefixIcon: const Icon(Icons.account_balance_outlined),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: interestController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Riba (%)',
-                    prefixIcon: Icon(Icons.percent),
+                  decoration: InputDecoration(
+                    labelText: 'interest_rate_percent'.tr(context),
+                    prefixIcon: const Icon(Icons.percent),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -142,8 +145,8 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                         maxLoanController.text.isEmpty ||
                         interestController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tafadhali jaza sehemu zote'),
+                        SnackBar(
+                          content: Text('fill_all_fields_prompt'.tr(context)),
                           backgroundColor: AppTheme.errorColor,
                         ),
                       );
@@ -178,7 +181,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(result['message']),
+                          content: Text(
+                            (result['message'] as String).tr(context),
+                          ),
                           backgroundColor: result['success']
                               ? AppTheme.successColor
                               : AppTheme.errorColor,
@@ -189,7 +194,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                     }
                   },
                   child: Text(
-                    group == null ? 'UNDA KIKUNDI' : 'HIFADHI MABADILIKO',
+                    group == null
+                        ? 'create_group_button'.tr(context)
+                        : 'save_changes_button'.tr(context),
                   ),
                 ),
               ],
@@ -205,7 +212,7 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Vikundi'),
+        title: Text('manage_groups'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/admin'),
@@ -221,9 +228,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
         onPressed: () => _showGroupForm(),
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Kikundi Kipya',
-          style: TextStyle(color: Colors.white),
+        label: Text(
+          'new_group'.tr(context),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
       body: _isLoading
@@ -233,10 +240,10 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
           : RefreshIndicator(
               onRefresh: _loadData,
               child: _groups.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        'Hakuna vikundi',
-                        style: TextStyle(color: AppTheme.textSecondary),
+                        'no_groups_found'.tr(context),
+                        style: const TextStyle(color: AppTheme.textSecondary),
                       ),
                     )
                   : ListView.builder(
@@ -299,7 +306,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isActive ? 'Inafanya Kazi' : 'Imesimama',
+                    isActive
+                        ? 'status_active'.tr(context)
+                        : 'status_inactive'.tr(context),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
@@ -320,7 +329,7 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
-                      group['description'],
+                      group['description'] ?? '',
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 13,
@@ -331,14 +340,17 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _groupStat(
-                      'Mchango',
-                      'TZS ${_formatAmount(group['monthly_contribution'])}',
+                      'contribution'.tr(context),
+                      '${'currency_symbol'.tr(context)} ${_formatAmount(group['monthly_contribution'])}',
                     ),
                     _groupStat(
-                      'Mkopo wa Juu',
-                      'TZS ${_formatAmount(group['max_loan_amount'])}',
+                      'max_loan'.tr(context),
+                      '${'currency_symbol'.tr(context)} ${_formatAmount(group['max_loan_amount'])}',
                     ),
-                    _groupStat('Riba', '${group['interest_rate'] ?? 0}%'),
+                    _groupStat(
+                      'interest_rate'.tr(context),
+                      '${group['interest_rate'] ?? 0}%',
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -346,7 +358,7 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Mkutano: ${_getFrequencyLabel(group['meeting_frequency'] ?? '')}',
+                      '${'meeting'.tr(context)}: ${_getFrequencyLabel(group['meeting_frequency'] ?? '')}',
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 12,
@@ -357,21 +369,21 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('Futa Kikundi'),
+                            title: Text('delete_group_title'.tr(context)),
                             content: Text(
-                              'Je, una uhakika unataka kufuta kikundi "${group['name']}"? Wanachama wote wataondolewa kwenye kikundi hiki.',
+                              '${'delete_group_confirmation'.tr(context)} "${group['name']}"? ${'delete_group_warning'.tr(context)}',
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
-                                child: const Text('GHAIRI'),
+                                child: Text('cancel'.tr(context)),
                               ),
                               ElevatedButton(
                                 onPressed: () => Navigator.pop(context, true),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.errorColor,
                                 ),
-                                child: const Text('FUTA KIKUNDI'),
+                                child: Text('delete'.tr(context)),
                               ),
                             ],
                           ),
@@ -384,7 +396,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(result['message']),
+                                content: Text(
+                                  (result['message'] as String).tr(context),
+                                ),
                                 backgroundColor: result['success']
                                     ? AppTheme.successColor
                                     : AppTheme.errorColor,
@@ -399,9 +413,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                         size: 16,
                         color: AppTheme.errorColor,
                       ),
-                      label: const Text(
-                        'Futa',
-                        style: TextStyle(color: AppTheme.errorColor),
+                      label: Text(
+                        'delete'.tr(context),
+                        style: const TextStyle(color: AppTheme.errorColor),
                       ),
                     ),
                     TextButton.icon(
@@ -411,9 +425,9 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
                         size: 16,
                         color: AppTheme.primaryColor,
                       ),
-                      label: const Text(
-                        'Hariri',
-                        style: TextStyle(color: AppTheme.primaryColor),
+                      label: Text(
+                        'edit'.tr(context),
+                        style: const TextStyle(color: AppTheme.primaryColor),
                       ),
                     ),
                   ],
@@ -444,11 +458,11 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
   String _getFrequencyLabel(String freq) {
     switch (freq) {
       case 'WEEKLY':
-        return 'Kila Wiki';
+        return 'freq_weekly'.tr(context);
       case 'MONTHLY':
-        return 'Kila Mwezi';
+        return 'freq_monthly'.tr(context);
       case 'QUARTERLY':
-        return 'Kila Robo Mwaka';
+        return 'freq_quarterly'.tr(context);
       default:
         return freq;
     }

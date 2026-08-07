@@ -112,17 +112,4 @@ class NotificationsService {
       // ignore
     }
   }
-
-  static Future<void> deleteNotification(int notificationId) async {
-    try {
-      final db = await DatabaseHelper.instance.database;
-      await db.delete(
-        'notifications',
-        where: 'id = ?',
-        whereArgs: [notificationId],
-      );
-    } catch (e) {
-      // ignore
-    }
-  }
 }

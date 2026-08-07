@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../auth_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/database/database_helper.dart';
@@ -74,19 +75,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _emailController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      _showMessage('Tafadhali jaza sehemu zote', isError: true);
+      _showMessage('fill_all_fields_prompt'.tr(context), isError: true);
       return;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
-      _showMessage('Nywila hazifanani', isError: true);
+      _showMessage('passwords_do_not_match'.tr(context), isError: true);
       return;
     }
     if (_passwordController.text.length < 6) {
-      _showMessage('Nywila lazima iwe na herufi 6 au zaidi', isError: true);
+      _showMessage('password_too_short'.tr(context), isError: true);
       return;
     }
     if (_selectedGroupId == null) {
-      _showMessage('Tafadhali chagua kikundi', isError: true);
+      _showMessage('select_group_prompt'.tr(context), isError: true);
       return;
     }
 
@@ -105,11 +106,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      _showMessage('Umesajiliwa! Tafadhali ingia', isError: false);
+      _showMessage('registration_successful'.tr(context), isError: false);
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) context.go('/login');
     } else {
-      if (mounted) _showMessage(result['message'], isError: true);
+      if (mounted)
+        _showMessage(result['message'].toString().tr(context), isError: true);
     }
   }
 
@@ -143,20 +145,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Jisajili',
-                        style: TextStyle(
+                        'register_title'.tr(context),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'Tengeneza akaunti yako',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        'register_subtitle'.tr(context),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -184,10 +189,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _firstNameController,
                         textCapitalization: TextCapitalization.words,
-                        decoration: const InputDecoration(
-                          labelText: 'Jina la Kwanza',
-                          prefixIcon: Icon(Icons.person_outlined),
-                          hintText: 'mfano: John',
+                        decoration: InputDecoration(
+                          labelText: 'first_name'.tr(context),
+                          prefixIcon: const Icon(Icons.person_outlined),
+                          hintText: 'hint_first_name'.tr(context),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -196,10 +201,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _lastNameController,
                         textCapitalization: TextCapitalization.words,
-                        decoration: const InputDecoration(
-                          labelText: 'Jina la Ukoo',
-                          prefixIcon: Icon(Icons.person_outlined),
-                          hintText: 'mfano: Doe',
+                        decoration: InputDecoration(
+                          labelText: 'last_name'.tr(context),
+                          prefixIcon: const Icon(Icons.person_outlined),
+                          hintText: 'hint_last_name'.tr(context),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -208,10 +213,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
-                          hintText: 'mfano@email.com',
+                        decoration: InputDecoration(
+                          labelText: 'email'.tr(context),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          hintText: 'hint_email'.tr(context),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -220,10 +225,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'Nambari ya Simu',
-                          prefixIcon: Icon(Icons.phone_outlined),
-                          hintText: '0712345678',
+                        decoration: InputDecoration(
+                          labelText: 'phone_number'.tr(context),
+                          prefixIcon: const Icon(Icons.phone_outlined),
+                          hintText: 'hint_phone'.tr(context),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -231,9 +236,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Chagua Kikundi
                       DropdownButtonFormField<int>(
                         initialValue: _selectedGroupId,
-                        decoration: const InputDecoration(
-                          labelText: 'Chagua Kikundi',
-                          prefixIcon: Icon(Icons.group_outlined),
+                        decoration: InputDecoration(
+                          labelText: 'select_group'.tr(context),
+                          prefixIcon: const Icon(Icons.group_outlined),
                         ),
                         items: _groups.map((group) {
                           return DropdownMenuItem<int>(
@@ -249,9 +254,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Chagua Jukumu
                       DropdownButtonFormField<String>(
                         initialValue: _selectedRole,
-                        decoration: const InputDecoration(
-                          labelText: 'Jukumu',
-                          prefixIcon: Icon(Icons.badge_outlined),
+                        decoration: InputDecoration(
+                          labelText: 'role'.tr(context),
+                          prefixIcon: const Icon(Icons.badge_outlined),
                         ),
                         items: _roles.map((role) {
                           return DropdownMenuItem<String>(
@@ -269,7 +274,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          labelText: 'Nywila',
+                          labelText: 'password'.tr(context),
                           prefixIcon: const Icon(Icons.lock_outlined),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -290,7 +295,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirm,
                         decoration: InputDecoration(
-                          labelText: 'Thibitisha Nywila',
+                          labelText: 'confirm_password'.tr(context),
                           prefixIcon: const Icon(Icons.lock_outlined),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -318,7 +323,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text('JISAJILI'),
+                            : Text('register_button'.tr(context)),
                       ),
                       const SizedBox(height: 16),
 
@@ -326,15 +331,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Una akaunti tayari? ',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                          Text(
+                            'already_have_account'.tr(context),
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                           GestureDetector(
                             onTap: () => context.go('/login'),
-                            child: const Text(
-                              'Ingia',
-                              style: TextStyle(
+                            child: Text(
+                              'login_link'.tr(context),
+                              style: const TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -355,19 +362,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   String _getRoleLabel(String role) {
-    switch (role) {
-      case 'ADMIN':
-        return 'Msimamizi';
-      case 'ACCOUNTANT':
-        return 'Mhasibu';
-      case 'CHAIRPERSON':
-        return 'Mwenyekiti';
-      case 'SECRETARY':
-        return 'Katibu';
-      case 'TREASURER':
-        return 'Mweka Hazina';
-      default:
-        return 'Mwanachama';
-    }
+    return 'role_${role.toLowerCase()}'.tr(context);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../services/admin_service.dart';
 import '../../../core/database/database_helper.dart';
@@ -80,7 +81,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Ripoti za Kikundi'),
+        title: Text('group_reports'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/admin'),
@@ -90,10 +91,10 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
           indicatorColor: AppTheme.accentColor,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(text: 'Muhtasari'),
-            Tab(text: 'Akiba'),
-            Tab(text: 'Malipo'),
+          tabs: [
+            Tab(text: 'summary'.tr(context)),
+            Tab(text: 'savings_tab'.tr(context)),
+            Tab(text: 'payments_tab'.tr(context)),
           ],
         ),
       ),
@@ -127,25 +128,25 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
             childAspectRatio: 1.3,
             children: [
               _statCard(
-                'Wanachama',
+                'members'.tr(context),
                 '${_stats['totalMembers'] ?? 0}',
                 Icons.people_outlined,
                 AppTheme.primaryColor,
               ),
               _statCard(
-                'Jumla Akiba',
+                'total_savings'.tr(context),
                 'TZS ${_formatAmount(_stats['totalSavings'])}',
                 Icons.savings_outlined,
                 const Color(0xFF00695C),
               ),
               _statCard(
-                'Mikopo Hai',
+                'active_loans'.tr(context),
                 '${_stats['activeLoans'] ?? 0}',
                 Icons.account_balance_outlined,
                 const Color(0xFF1565C0),
               ),
               _statCard(
-                'Jumla Mikopo',
+                'total_loans'.tr(context),
                 'TZS ${_formatAmount(_stats['totalLoans'])}',
                 Icons.trending_up,
                 const Color(0xFFE65100),
@@ -155,7 +156,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
           const SizedBox(height: 20),
 
           // Recent Loans
-          _sectionTitle('Mikopo ya Hivi Karibuni'),
+          _sectionTitle('recent_loans'.tr(context)),
           const SizedBox(height: 12),
           ..._recentLoans
               .take(5)
@@ -228,9 +229,9 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
             ),
             child: Column(
               children: [
-                const Text(
-                  'Jumla ya Akiba',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                Text(
+                  'total_savings'.tr(context),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -247,7 +248,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
           const SizedBox(height: 20),
 
           // Top Savers
-          _sectionTitle('Wanaochanga Zaidi'),
+          _sectionTitle('top_savers'.tr(context)),
           const SizedBox(height: 12),
           ..._topSavers.asMap().entries.map((entry) {
             final index = entry.key;
@@ -313,10 +314,10 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
     return RefreshIndicator(
       onRefresh: _loadData,
       child: _recentTransactions.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
-                'Hakuna malipo',
-                style: TextStyle(color: AppTheme.textSecondary),
+                'no_payments_found'.tr(context),
+                style: const TextStyle(color: AppTheme.textSecondary),
               ),
             )
           : ListView.builder(
@@ -461,19 +462,19 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
     switch (status) {
       case 'PENDING':
         color = const Color(0xFFE65100);
-        label = 'Inasubiri';
+        label = 'status_pending'.tr(context);
         break;
       case 'ACTIVE':
         color = AppTheme.successColor;
-        label = 'Inayoendelea';
+        label = 'status_active'.tr(context);
         break;
       case 'COMPLETED':
         color = AppTheme.textSecondary;
-        label = 'Imekamilika';
+        label = 'status_completed'.tr(context);
         break;
       case 'REJECTED':
         color = AppTheme.errorColor;
-        label = 'Imekataliwa';
+        label = 'status_rejected'.tr(context);
         break;
       default:
         color = AppTheme.textSecondary;

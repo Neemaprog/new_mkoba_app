@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/language_service.dart';
+import '../../../core/services/translation_extension.dart';
 import '../auth_service.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -25,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showError('Tafadhali jaza email na password');
+      _showError('fill_all_fields'.tr(context));
       return;
     }
     setState(() => _isLoading = true);
@@ -72,20 +74,18 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Umesahau Nywila?'),
+        title: Text('forgot_password_title'.tr(context)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Weka email uliyotumia kujisajili. Tutakutumia nywila mpya.',
-            ),
+            Text('forgot_password_instructions'.tr(context)),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: 'email'.tr(context),
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
             ),
           ],
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('GHAIRI'),
+            child: Text('cancel'.tr(context).toUpperCase()),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -109,7 +109,9 @@ class _LoginScreenState extends State<LoginScreen> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(result['message']),
+                    content: Text(
+                      result['message'],
+                    ), // Keep this dynamic from backend
                     backgroundColor: result['success']
                         ? AppTheme.successColor
                         : AppTheme.errorColor,
@@ -121,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            child: const Text('TUMA NYWILA'),
+            child: Text('send_password_button'.tr(context).toUpperCase()),
           ),
         ],
       ),
@@ -153,18 +155,49 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Mkoba System',
-                    style: TextStyle(
+                  Text(
+                    'app_name'.tr(context),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Mfumo wa Akiba na Mikopo',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  Text(
+                    'app_tagline'.tr(context),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.5)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: LanguageService.instance.locale.languageCode,
+                        icon: const Icon(Icons.language, color: Colors.white),
+                        dropdownColor: AppTheme.primaryColor,
+                        style: const TextStyle(color: Colors.white),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'sw',
+                            child: Text('Kiswahili'),
+                          ),
+                          DropdownMenuItem(value: 'en', child: Text('English')),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            LanguageService.instance.changeLanguage(value);
+                          }
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -185,9 +218,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-                      const Text(
-                        'Ingia',
-                        style: TextStyle(
+                      Text(
+                        'login'.tr(context),
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
@@ -197,10 +230,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
-                          hintText: 'mfano@email.com',
+                        decoration: InputDecoration(
+                          labelText: 'email'.tr(context),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          hintText: 'hint_email'.tr(context),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -208,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          labelText: 'Nywila',
+                          labelText: 'password'.tr(context),
                           prefixIcon: const Icon(Icons.lock_outlined),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -229,9 +262,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: _isLoading
                               ? null
                               : _showForgotPasswordDialog,
-                          child: const Text(
-                            'Umesahau Nywila?',
-                            style: TextStyle(color: AppTheme.primaryColor),
+                          child: Text(
+                            'forgot_password_prompt'.tr(context),
+                            style: const TextStyle(
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
                         ),
                       ),
@@ -247,21 +282,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text('INGIA'),
+                            : Text('login_button'.tr(context)),
                       ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Huna akaunti? ',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                          Text(
+                            'no_account'.tr(context),
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                           GestureDetector(
                             onTap: () => context.go('/register'),
-                            child: const Text(
-                              'Jisajili',
-                              style: TextStyle(
+                            child: Text(
+                              'register_link'.tr(context),
+                              style: const TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),

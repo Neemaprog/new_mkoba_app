@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:mkoba_system/core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../../../core/database/database_helper.dart';
@@ -17,7 +18,6 @@ class _ReportsScreenState extends State<ReportsScreen>
   late TabController _tabController;
   bool _isLoading = true;
   int _userId = 0;
-  int _groupId = 1;
 
   // Savings data
   double _totalSavings = 0;
@@ -50,7 +50,6 @@ class _ReportsScreenState extends State<ReportsScreen>
     setState(() => _isLoading = true);
     final userInfo = await AuthService.getUserInfo();
     _userId = int.tryParse(userInfo['id'] ?? '0') ?? 0;
-    _groupId = int.tryParse(userInfo['group_id'] ?? '1') ?? 1;
 
     final db = await DatabaseHelper.instance.database;
 
@@ -119,7 +118,7 @@ class _ReportsScreenState extends State<ReportsScreen>
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Ripoti Zangu'),
+        title: Text('reports_title'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/dashboard'),
@@ -129,10 +128,10 @@ class _ReportsScreenState extends State<ReportsScreen>
           indicatorColor: AppTheme.accentColor,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(text: 'Akiba'),
-            Tab(text: 'Mikopo'),
-            Tab(text: 'Muhtasari'),
+          tabs: [
+            Tab(text: 'savings_tab'.tr(context)),
+            Tab(text: 'loans_tab'.tr(context)),
+            Tab(text: 'summary_tab'.tr(context)),
           ],
         ),
       ),
@@ -159,7 +158,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         children: [
           // Total Card
           _buildStatCard(
-            title: 'Jumla ya Akiba Yako',
+            title: 'total_savings_title'.tr(context),
             value: 'TZS ${_formatAmount(_totalSavings)}',
             icon: Icons.savings_outlined,
             color: AppTheme.primaryColor,
@@ -176,9 +175,9 @@ class _ReportsScreenState extends State<ReportsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Akiba kwa Miezi 6 Iliyopita',
-                  style: TextStyle(
+                Text(
+                  'savings_last_6_months'.tr(context),
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: AppTheme.textPrimary,
@@ -186,12 +185,13 @@ class _ReportsScreenState extends State<ReportsScreen>
                 ),
                 const SizedBox(height: 20),
                 _monthlySavings.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: Text(
-                            'Hakuna data ya kutosha',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                            'no_data_available'.tr(context),
+                            style:
+                                const TextStyle(color: AppTheme.textSecondary),
                           ),
                         ),
                       )
@@ -200,9 +200,12 @@ class _ReportsScreenState extends State<ReportsScreen>
                         child: BarChart(
                           BarChartData(
                             alignment: BarChartAlignment.spaceAround,
-                            maxY:
-                                _monthlySavings
-                                    .map((e) => (e['total'] as num?)?.toDouble() ?? 0.0)
+                            maxY: _monthlySavings
+                                    .map(
+                                      (e) =>
+                                          (e['total'] as num?)?.toDouble() ??
+                                          0.0,
+                                    )
                                     .fold(0.0, (a, b) => a > b ? a : b) *
                                 1.2,
                             barGroups: _monthlySavings
@@ -213,8 +216,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                                     x: entry.key,
                                     barRods: [
                                       BarChartRodData(
-                                        toY:
-                                            (entry.value['total'] as num?)
+                                        toY: (entry.value['total'] as num?)
                                                 ?.toDouble() ??
                                             0.0,
                                         color: AppTheme.primaryColor,
@@ -246,8 +248,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                                     ];
                                     final idx = value.toInt();
                                     if (idx < _monthlySavings.length) {
-                                      final month =
-                                          int.tryParse(
+                                      final month = int.tryParse(
                                             _monthlySavings[idx]['month']
                                                 .toString(),
                                           ) ??
@@ -300,7 +301,7 @@ class _ReportsScreenState extends State<ReportsScreen>
             children: [
               Expanded(
                 child: _buildStatCard(
-                  title: 'Mikopo Inayoendelea',
+                  title: 'ongoing_loans'.tr(context),
                   value: '$_activeLoans',
                   icon: Icons.pending_outlined,
                   color: const Color(0xFF1565C0),
@@ -309,7 +310,7 @@ class _ReportsScreenState extends State<ReportsScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
-                  title: 'Iliyokamilika',
+                  title: 'completed_loans'.tr(context),
                   value: '$_completedLoans',
                   icon: Icons.check_circle_outline,
                   color: AppTheme.successColor,
@@ -329,9 +330,9 @@ class _ReportsScreenState extends State<ReportsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Hali ya Mikopo',
-                  style: TextStyle(
+                Text(
+                  'loans_status'.tr(context),
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: AppTheme.textPrimary,
@@ -339,12 +340,13 @@ class _ReportsScreenState extends State<ReportsScreen>
                 ),
                 const SizedBox(height: 16),
                 _totalLoans == 0
-                    ? const Center(
+                    ? Center(
                         child: Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: Text(
-                            'Hakuna mikopo bado',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                            'no_loans_yet'.tr(context),
+                            style:
+                                const TextStyle(color: AppTheme.textSecondary),
                           ),
                         ),
                       )
@@ -391,19 +393,19 @@ class _ReportsScreenState extends State<ReportsScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _legend(
-                                  'Imelipwa',
+                                  'paid_legend'.tr(context),
                                   'TZS ${_formatAmount(_totalPaid)}',
                                   AppTheme.successColor,
                                 ),
                                 const SizedBox(height: 12),
                                 _legend(
-                                  'Kilichobaki',
+                                  'remaining_legend'.tr(context),
                                   'TZS ${_formatAmount(_totalRemaining)}',
                                   AppTheme.errorColor,
                                 ),
                                 const SizedBox(height: 12),
                                 _legend(
-                                  'Jumla',
+                                  'total_legend'.tr(context),
                                   'TZS ${_formatAmount(_totalLoans)}',
                                   AppTheme.primaryColor,
                                 ),
@@ -432,7 +434,7 @@ class _ReportsScreenState extends State<ReportsScreen>
             children: [
               Expanded(
                 child: _buildStatCard(
-                  title: 'Akiba Yote',
+                  title: 'total_savings_card'.tr(context),
                   value: 'TZS ${_formatAmount(_totalSavings)}',
                   icon: Icons.savings_outlined,
                   color: AppTheme.primaryColor,
@@ -441,7 +443,7 @@ class _ReportsScreenState extends State<ReportsScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
-                  title: 'Madeni',
+                  title: 'debts_card'.tr(context),
                   value: 'TZS ${_formatAmount(_totalRemaining)}',
                   icon: Icons.account_balance_outlined,
                   color: AppTheme.errorColor,
@@ -452,9 +454,9 @@ class _ReportsScreenState extends State<ReportsScreen>
           const SizedBox(height: 20),
 
           // Recent Transactions
-          const Text(
-            'Malipo ya Hivi Karibuni',
-            style: TextStyle(
+          Text(
+            'recent_payments'.tr(context),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
@@ -463,12 +465,12 @@ class _ReportsScreenState extends State<ReportsScreen>
           const SizedBox(height: 12),
 
           _recentTransactions.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Text(
-                      'Hakuna malipo bado',
-                      style: TextStyle(color: AppTheme.textSecondary),
+                      'no_payments_yet'.tr(context),
+                      style: const TextStyle(color: AppTheme.textSecondary),
                     ),
                   ),
                 )
@@ -476,12 +478,11 @@ class _ReportsScreenState extends State<ReportsScreen>
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _recentTransactions.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final t = _recentTransactions[index];
                     final type = t['type']?.toString() ?? '';
-                    final isCredit =
-                        type.contains('SAVINGS') ||
+                    final isCredit = type.contains('SAVINGS') ||
                         type.contains('DISBURSEMENT');
                     return Container(
                       padding: const EdgeInsets.all(12),
@@ -495,8 +496,8 @@ class _ReportsScreenState extends State<ReportsScreen>
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: isCredit
-                                  ? AppTheme.successColor.withValues(alpha: 0.1)
-                                  : AppTheme.errorColor.withValues(alpha: 0.1),
+                                  ? AppTheme.successColor.withOpacity(0.1)
+                                  : AppTheme.errorColor.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -525,9 +526,9 @@ class _ReportsScreenState extends State<ReportsScreen>
                                 ),
                                 Text(
                                   t['transaction_date']?.toString().substring(
-                                        0,
-                                        10,
-                                      ) ??
+                                            0,
+                                            10,
+                                          ) ??
                                       '',
                                   style: const TextStyle(
                                     color: AppTheme.textSecondary,
@@ -537,13 +538,14 @@ class _ReportsScreenState extends State<ReportsScreen>
                               ],
                             ),
                           ),
+                          const SizedBox(width: 12),
                           Text(
-                            '${isCredit ? '+' : '-'} TZS ${_formatAmount(t['amount'])}',
+                            '${isCredit ? '+' : '-'}TZS ${_formatAmount((t['amount'] as num?)?.toDouble() ?? 0.0)}',
                             style: TextStyle(
+                              fontWeight: FontWeight.bold,
                               color: isCredit
                                   ? AppTheme.successColor
                                   : AppTheme.errorColor,
-                              fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
                           ),
@@ -552,12 +554,12 @@ class _ReportsScreenState extends State<ReportsScreen>
                     );
                   },
                 ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
+  // ===================== HELPERS =====================
   Widget _buildStatCard({
     required String title,
     required String value,
@@ -569,84 +571,76 @@ class _ReportsScreenState extends State<ReportsScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Icon(icon, color: color, size: 20),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
-              color: color,
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 18,
+              color: AppTheme.textPrimary,
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
           ),
         ],
       ),
     );
   }
 
-  Widget _legend(String label, String value, Color color) {
+  Widget _legend(String title, String value, Color color) {
     return Row(
       children: [
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          color: color,
         ),
         const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 11,
-                ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
               ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: AppTheme.textPrimary,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  String _formatAmount(dynamic amount) {
-    if (amount == null) return '0';
-    final num value = amount is num
-        ? amount
-        : num.tryParse(amount.toString()) ?? 0;
-    return value
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+  String _formatAmount(double amount) {
+    return amount.toStringAsFixed(2).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
+          (Match m) => '${m[1]},',
         );
   }
 }

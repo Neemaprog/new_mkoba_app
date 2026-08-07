@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../groups_service.dart';
@@ -46,7 +47,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Kikundi Changu'),
+        title: Text('my_group_title'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/dashboard'),
@@ -82,9 +83,9 @@ class _GroupsScreenState extends State<GroupsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Wanachama',
-                          style: TextStyle(
+                        Text(
+                          'members'.tr(context),
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
@@ -96,11 +97,11 @@ class _GroupsScreenState extends State<GroupsScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            color: AppTheme.primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            '${_members.length} watu',
+                            '${_members.length} ${'people'.tr(context)}',
                             style: const TextStyle(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.bold,
@@ -112,12 +113,12 @@ class _GroupsScreenState extends State<GroupsScreen> {
                     const SizedBox(height: 12),
 
                     _members.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Padding(
-                              padding: EdgeInsets.all(24),
+                              padding: const EdgeInsets.all(24),
                               child: Text(
-                                'Hakuna wanachama bado',
-                                style: TextStyle(
+                                'no_members_yet'.tr(context),
+                                style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 16,
                                 ),
@@ -128,7 +129,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _members.length,
-                            separatorBuilder: (_, _) =>
+                            separatorBuilder: (_, __) =>
                                 const SizedBox(height: 8),
                             itemBuilder: (context, index) =>
                                 _buildMemberCard(_members[index]),
@@ -162,7 +163,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  _group['name'] ?? 'Kikundi Changu',
+                  _group['name'] ?? 'my_group_title'.tr(context),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -183,12 +184,18 @@ class _GroupsScreenState extends State<GroupsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _groupStat('Mkutano', _group['meeting_frequency'] ?? '-'),
               _groupStat(
-                'Mchango',
+                'meeting_label'.tr(context),
+                _group['meeting_frequency'] ?? '-',
+              ),
+              _groupStat(
+                'contribution_label'.tr(context),
                 'TZS ${_formatAmount(_group['monthly_contribution'])}',
               ),
-              _groupStat('Riba', '${_group['interest_rate'] ?? 0}%'),
+              _groupStat(
+                'interest_rate_label'.tr(context),
+                '${_group['interest_rate'] ?? 0}%',
+              ),
             ],
           ),
         ],
@@ -208,7 +215,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
           ),
         ),
         Text(
-          label,
+          label.tr(context),
           style: const TextStyle(color: Colors.white70, fontSize: 11),
         ),
       ],
@@ -220,7 +227,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
       children: [
         Expanded(
           child: _summaryCard(
-            'Jumla Akiba',
+            'total_savings_label'.tr(context),
             'TZS ${_formatAmount(_summary['totalSavings'])}',
             Icons.savings_outlined,
             AppTheme.primaryColor,
@@ -229,7 +236,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _summaryCard(
-            'Mikopo',
+            'loans_label'.tr(context),
             'TZS ${_formatAmount(_summary['totalLoans'])}',
             Icons.account_balance_outlined,
             const Color(0xFF1565C0),
@@ -238,7 +245,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _summaryCard(
-            'Wanachama',
+            'members_label'.tr(context),
             '${_summary['memberCount'] ?? 0}',
             Icons.people_outlined,
             const Color(0xFFE65100),
@@ -272,7 +279,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
             textAlign: TextAlign.center,
           ),
           Text(
-            label,
+            label.tr(context),
             style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
             textAlign: TextAlign.center,
           ),
@@ -282,8 +289,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
   }
 
   Widget _buildMemberCard(Map<String, dynamic> member) {
-    final name = '${member['first_name'] ?? ''} ${member['last_name'] ?? ''}'
-        .trim();
+    final name =
+        '${member['first_name'] ?? ''} ${member['last_name'] ?? ''}'.trim();
     final initial = name.isNotEmpty ? name[0].toUpperCase() : 'M';
     final role = member['role'] ?? 'MEMBER';
 
@@ -333,11 +340,11 @@ class _GroupsScreenState extends State<GroupsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              color: AppTheme.primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              role,
+              _getRoleLabel(role),
               style: const TextStyle(
                 color: AppTheme.primaryColor,
                 fontSize: 11,
@@ -350,14 +357,28 @@ class _GroupsScreenState extends State<GroupsScreen> {
     );
   }
 
+  String _getRoleLabel(String role) {
+    switch (role) {
+      case 'ADMIN':
+        return 'role_admin'.tr(context);
+      case 'CHAIRPERSON':
+        return 'role_chairperson'.tr(context);
+      case 'TREASURER':
+        return 'role_treasurer'.tr(context);
+      case 'ACCOUNTANT':
+        return 'role_accountant'.tr(context);
+      case 'SECRETARY':
+        return 'role_secretary'.tr(context);
+      default:
+        return 'role_member'.tr(context);
+    }
+  }
+
   String _formatAmount(dynamic amount) {
     if (amount == null) return '0';
-    final num value = amount is num
-        ? amount
-        : num.tryParse(amount.toString()) ?? 0;
-    return value
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    final num value =
+        amount is num ? amount : num.tryParse(amount.toString()) ?? 0;
+    return value.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
         );

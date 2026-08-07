@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../loans_service.dart';
@@ -79,33 +80,33 @@ class _LoansScreenState extends State<LoansScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Omba Mkopo',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              'apply_loan_title'.tr(context),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Kiasi (TZS)',
-                prefixIcon: Icon(Icons.attach_money),
+              decoration: InputDecoration(
+                labelText: 'amount_label'.tr(context),
+                prefixIcon: const Icon(Icons.attach_money),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: purposeController,
-              decoration: const InputDecoration(
-                labelText: 'Madhumuni',
-                prefixIcon: Icon(Icons.description_outlined),
+              decoration: InputDecoration(
+                labelText: 'purpose_label'.tr(context),
+                prefixIcon: const Icon(Icons.description_outlined),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: guarantorController,
-              decoration: const InputDecoration(
-                labelText: 'Mdhamini (hiari)',
-                prefixIcon: Icon(Icons.person_outlined),
+              decoration: InputDecoration(
+                labelText: 'guarantor_label_optional'.tr(context),
+                prefixIcon: const Icon(Icons.person_outlined),
               ),
             ),
             const SizedBox(height: 20),
@@ -133,7 +134,7 @@ class _LoansScreenState extends State<LoansScreen>
                   if (result['success']) _loadData();
                 }
               },
-              child: const Text('TUMA MAOMBI'),
+              child: Text('submit_application_button'.tr(context)),
             ),
           ],
         ),
@@ -165,9 +166,12 @@ class _LoansScreenState extends State<LoansScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Lipa Mkopo',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                'repay_loan_title'.tr(context),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
 
@@ -181,9 +185,9 @@ class _LoansScreenState extends State<LoansScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Kilichobaki:',
-                      style: TextStyle(color: AppTheme.textSecondary),
+                    Text(
+                      'remaining_balance_label'.tr(context),
+                      style: const TextStyle(color: AppTheme.textSecondary),
                     ),
                     Text(
                       'TZS ${_formatAmount(loan['remaining_balance'])}',
@@ -203,7 +207,7 @@ class _LoansScreenState extends State<LoansScreen>
                 controller: amountController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Kiasi cha Kulipa (TZS)',
+                  labelText: 'repayment_amount_label'.tr(context),
                   prefixIcon: const Icon(Icons.attach_money),
                   hintText: 'Max: ${_formatAmount(loan['remaining_balance'])}',
                 ),
@@ -345,18 +349,38 @@ class _LoansScreenState extends State<LoansScreen>
                             loanId: loan['id'].toString(),
                           );
 
+                          // Debug logging
+                          print('🔍 AzamPay Response: $azamResult');
+                          print('Status: ${azamResult['success']}');
+                          print('Message: ${azamResult['message']}');
+
                           if (!azamResult['success']) {
                             setModalState(() => isProcessing = false);
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(azamResult['message']),
+                                  content: Text('❌ ${azamResult['message']}'),
                                   backgroundColor: AppTheme.errorColor,
                                   behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 4),
                                 ),
                               );
                             }
                             return;
+                          }
+
+                          // Ikibaa successful, show confirmation
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '✅ Ombi limetumwa! ${azamResult['message']}',
+                                ),
+                                backgroundColor: AppTheme.successColor,
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
                           }
                         }
 
@@ -399,12 +423,16 @@ class _LoansScreenState extends State<LoansScreen>
                             ),
                           ),
                           SizedBox(width: 10),
-                          Text('Inatuma ombi...'),
+                          Text('Inalipa sasa...'),
                         ],
                       )
                     : Text(useAzamPay ? 'LIPA KWA AZAMPAY' : 'LIPA MKOPO'),
               ),
               const SizedBox(height: 8),
+              TextButton(
+                onPressed: isProcessing ? null : () => Navigator.pop(context),
+                child: const Text('Ghairi'),
+              ),
             ],
           ),
         ),
@@ -417,7 +445,7 @@ class _LoansScreenState extends State<LoansScreen>
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Mikopo Yangu'),
+        title: Text('my_loans_title'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/dashboard'),
@@ -427,9 +455,9 @@ class _LoansScreenState extends State<LoansScreen>
           indicatorColor: AppTheme.accentColor,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(text: 'Inayoendelea'),
-            Tab(text: 'Iliyokamilika'),
+          tabs: [
+            Tab(text: 'ongoing_tab'.tr(context)),
+            Tab(text: 'completed_tab'.tr(context)),
           ],
         ),
       ),
@@ -437,7 +465,10 @@ class _LoansScreenState extends State<LoansScreen>
         onPressed: _showApplyDialog,
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Omba Mkopo', style: TextStyle(color: Colors.white)),
+        label: Text(
+          'apply_loan_button'.tr(context),
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? const Center(
@@ -452,19 +483,22 @@ class _LoansScreenState extends State<LoansScreen>
 
   Widget _buildList(List<Map<String, dynamic>> loans) {
     if (loans.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.account_balance_outlined,
               size: 80,
               color: AppTheme.textSecondary,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'Hakuna mikopo hapa',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              'no_loans_message'.tr(context),
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 16,
+              ),
             ),
           ],
         ),
@@ -544,9 +578,18 @@ class _LoansScreenState extends State<LoansScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _stat('Kiasi', 'TZS ${_formatAmount(principal)}'),
-              _stat('Kilichobaki', 'TZS ${_formatAmount(remaining)}'),
-              _stat('Riba', '${loan['interest_rate'] ?? 0}%'),
+              _stat(
+                'principal_label'.tr(context),
+                'TZS ${_formatAmount(principal)}',
+              ),
+              _stat(
+                'remaining_label'.tr(context),
+                'TZS ${_formatAmount(remaining)}',
+              ),
+              _stat(
+                'interest_rate_label'.tr(context),
+                '${loan['interest_rate'] ?? 0}%',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -563,7 +606,7 @@ class _LoansScreenState extends State<LoansScreen>
           ),
           const SizedBox(height: 4),
           Text(
-            '${(progress * 100).toStringAsFixed(0)}% imelipwa',
+            '${(progress * 100).toStringAsFixed(0)}% ${'paid_progress_label'.tr(context)}',
             style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
           ),
           if (isActive && loan['status'] == 'ACTIVE') ...[
@@ -573,8 +616,8 @@ class _LoansScreenState extends State<LoansScreen>
               child: OutlinedButton.icon(
                 onPressed: () => _showRepayDialog(loan),
                 icon: const Icon(Icons.payment, color: AppTheme.primaryColor),
-                label: const Text(
-                  'Lipa Mkopo',
+                label: Text(
+                  'repay_loan_button'.tr(context),
                   style: TextStyle(color: AppTheme.primaryColor),
                 ),
                 style: OutlinedButton.styleFrom(

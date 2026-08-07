@@ -16,25 +16,39 @@ class AzamPayService {
         return _token;
       }
 
+      // Tengeneza Basic Auth Token
+      final credentials =
+          '${AzamPayConfig.clientId}:${AzamPayConfig.clientSecret}';
+      final encodedCredentials = base64Encode(utf8.encode(credentials));
+
       final response = await http.post(
         Uri.parse(AzamPayConfig.authUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'appName': AzamPayConfig.appName,
-          'clientId': AzamPayConfig.clientId,
-          'clientSecret': AzamPayConfig.clientSecret,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic $encodedCredentials',
+        },
+        body: jsonEncode({'appName': AzamPayConfig.appName}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        _token = data['data']['accessToken'];
-        // Token inaisha baada ya saa 1
-        _tokenExpiry = DateTime.now().add(const Duration(minutes: 55));
-        return _token;
+        if (data['success'] == true && data['data'] != null) {
+          _token = data['data']['accessToken'];
+          // Token inaisha baada ya saa 1
+          _tokenExpiry = DateTime.now().add(const Duration(minutes: 55));
+          return _token;
+        } else {
+          // Angalia ujumbe wa kosa kutoka AzamPay
+          print('AzamPay Token Error: ${data['message']}');
+          return null;
+        }
+      } else {
+        print('AzamPay Token HTTP Error: ${response.statusCode}');
+        print('AzamPay Token Response: ${response.body}');
+        return null;
       }
-      return null;
     } catch (e) {
+      print('AzamPay Token Exception: $e');
       return null;
     }
   }

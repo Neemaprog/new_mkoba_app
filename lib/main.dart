@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/services/app_translations.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/language_service.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
 import 'features/auth/auth_service.dart';
@@ -22,11 +25,33 @@ import 'features/admin/screens/admin_reports_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LanguageService.instance.loadSavedLanguage();
   runApp(const MkobaApp());
 }
 
-class MkobaApp extends StatelessWidget {
+class MkobaApp extends StatefulWidget {
   const MkobaApp({super.key});
+
+  @override
+  State<MkobaApp> createState() => _MkobaAppState();
+}
+
+class _MkobaAppState extends State<MkobaApp> {
+  @override
+  void initState() {
+    super.initState();
+    LanguageService.instance.addListener(_onLanguageChanged);
+  }
+
+  @override
+  void dispose() {
+    LanguageService.instance.removeListener(_onLanguageChanged);
+    super.dispose();
+  }
+
+  void _onLanguageChanged() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +59,19 @@ class MkobaApp extends StatelessWidget {
       title: 'Mkoba System',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      locale: LanguageService.instance.locale,
+      supportedLocales: const [Locale('sw'), Locale('en')],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: _router,
     );
   }
 }
 
-// Roles zinazopelekwa Admin Dashboard
 const List<String> adminRoles = [
   'ADMIN',
   'CHAIRPERSON',
@@ -56,12 +88,9 @@ final GoRouter _router = GoRouter(
         state.matchedLocation == '/login' ||
         state.matchedLocation == '/register';
 
-    if (!isLoggedIn && !isAuthRoute) {
-      return '/login';
-    }
+    if (!isLoggedIn && !isAuthRoute) return '/login';
 
     if (isLoggedIn && isAuthRoute) {
-      // Angalia role ya mtumiaji
       final userInfo = await AuthService.getUserInfo();
       final role = userInfo['role'] ?? 'MEMBER';
       if (adminRoles.contains(role)) {
@@ -73,14 +102,11 @@ final GoRouter _router = GoRouter(
     return null;
   },
   routes: [
-    // Auth Routes
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
     ),
-
-    // User Routes
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardScreen(),
@@ -107,8 +133,6 @@ final GoRouter _router = GoRouter(
       path: '/reports',
       builder: (context, state) => const ReportsScreen(),
     ),
-
-    // Admin Routes
     GoRoute(
       path: '/admin',
       builder: (context, state) => const AdminDashboardScreen(),

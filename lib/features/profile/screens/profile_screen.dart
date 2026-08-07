@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 
@@ -61,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _updateProfile() async {
     if (_firstNameController.text.isEmpty) {
-      _showMessage('Tafadhali weka jina lako', isError: true);
+      _showMessage('enter_your_name_prompt'.tr(context), isError: true);
       return;
     }
     setState(() => _isLoading = true);
@@ -76,7 +77,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       Navigator.pop(context);
       _showMessage(
-        result['success'] ? 'Wasifu umesasishwa!' : result['message'],
+        result['success']
+            ? 'profile_updated_success'.tr(context)
+            : result['message'],
         isError: !result['success'],
       );
       if (result['success']) _loadUserInfo();
@@ -86,15 +89,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _changePassword() async {
     if (_oldPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty) {
-      _showMessage('Tafadhali jaza sehemu zote', isError: true);
+      _showMessage('fill_all_fields_prompt'.tr(context), isError: true);
       return;
     }
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      _showMessage('Nywila mpya hazifanani', isError: true);
+      _showMessage('passwords_do_not_match_prompt'.tr(context), isError: true);
       return;
     }
     if (_newPasswordController.text.length < 6) {
-      _showMessage('Nywila lazima iwe na herufi 6+', isError: true);
+      _showMessage('password_length_prompt'.tr(context), isError: true);
       return;
     }
     setState(() => _isLoading = true);
@@ -108,7 +111,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       Navigator.pop(context);
       _showMessage(
-        result['success'] ? 'Nywila imebadilishwa!' : result['message'],
+        result['success']
+            ? 'password_changed_success'.tr(context)
+            : result['message'],
         isError: !result['success'],
       );
       _oldPasswordController.clear();
@@ -121,12 +126,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Toka'),
-        content: const Text('Je, unataka kutoka kwenye akaunti yako?'),
+        title: Text('logout_title'.tr(context)),
+        content: Text('logout_confirmation'.tr(context)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hapana'),
+            child: Text('no_button'.tr(context)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -137,11 +142,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('Ndio, Toka'),
+            child: Text('yes_logout_button'.tr(context)),
           ),
         ],
       ),
     );
+  }
+
+  String _getTranslatedRole(String role) {
+    switch (role.toUpperCase()) {
+      case 'ADMIN':
+        return 'role_admin'.tr(context);
+      case 'CHAIRPERSON':
+        return 'role_chairperson'.tr(context);
+      case 'TREASURER':
+        return 'role_treasurer'.tr(context);
+      case 'ACCOUNTANT':
+        return 'role_accountant'.tr(context);
+      case 'SECRETARY':
+        return 'role_secretary'.tr(context);
+      case 'MEMBER':
+        return 'role_member'.tr(context);
+      default:
+        return role;
+    }
   }
 
   @override
@@ -149,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Wasifu Wangu'),
+        title: Text('profile_title'.tr(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => context.go('/dashboard'),
@@ -189,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _userInfo['name'] ?? 'Mtumiaji',
+                    _userInfo['name'] ?? 'default_user'.tr(context),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -223,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      _userInfo['role'] ?? 'MEMBER',
+                      _getTranslatedRole(_userInfo['role'] ?? 'MEMBER'),
                       style: const TextStyle(
                         color: AppTheme.primaryColor,
                         fontWeight: FontWeight.bold,
@@ -251,15 +275,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _menuItem(
                     icon: Icons.edit_outlined,
-                    title: 'Hariri Wasifu',
-                    subtitle: 'Badilisha jina na simu',
+                    title: 'edit_profile_menu'.tr(context),
+                    subtitle: 'edit_profile_subtitle'.tr(context),
                     onTap: _showUpdateProfileSheet,
                   ),
                   const Divider(height: 1, indent: 56),
                   _menuItem(
                     icon: Icons.lock_outlined,
-                    title: 'Badilisha Nywila',
-                    subtitle: 'Weka nywila mpya salama',
+                    title: 'change_password_menu'.tr(context),
+                    subtitle: 'change_password_subtitle'.tr(context),
                     onTap: _showChangePasswordSheet,
                   ),
                 ],
@@ -273,7 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ElevatedButton.icon(
                 onPressed: _logout,
                 icon: const Icon(Icons.logout),
-                label: const Text('TOKA'),
+                label: Text('logout_button'.tr(context)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                 ),
@@ -339,33 +363,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Hariri Wasifu',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              'edit_profile_title'.tr(context),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _firstNameController,
-              decoration: const InputDecoration(
-                labelText: 'Jina la Kwanza',
-                prefixIcon: Icon(Icons.person_outlined),
+              decoration: InputDecoration(
+                labelText: 'first_name'.tr(context),
+                prefixIcon: const Icon(Icons.person_outlined),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _lastNameController,
-              decoration: const InputDecoration(
-                labelText: 'Jina la Ukoo',
-                prefixIcon: Icon(Icons.person_outlined),
+              decoration: InputDecoration(
+                labelText: 'last_name'.tr(context),
+                prefixIcon: const Icon(Icons.person_outlined),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'Nambari ya Simu',
-                prefixIcon: Icon(Icons.phone_outlined),
+              decoration: InputDecoration(
+                labelText: 'phone_number'.tr(context),
+                prefixIcon: const Icon(Icons.phone_outlined),
               ),
             ),
             const SizedBox(height: 20),
@@ -380,7 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('HIFADHI'),
+                  : Text('save_changes_button'.tr(context)),
             ),
           ],
         ),
@@ -406,35 +430,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Badilisha Nywila',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              'change_password_title'.tr(context),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _oldPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Nywila ya Sasa',
-                prefixIcon: Icon(Icons.lock_outlined),
+              decoration: InputDecoration(
+                labelText: 'current_password'.tr(context),
+                prefixIcon: const Icon(Icons.lock_outlined),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _newPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Nywila Mpya',
-                prefixIcon: Icon(Icons.lock_open_outlined),
+              decoration: InputDecoration(
+                labelText: 'new_password'.tr(context),
+                prefixIcon: const Icon(Icons.lock_open_outlined),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _confirmPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Thibitisha Nywila Mpya',
-                prefixIcon: Icon(Icons.lock_open_outlined),
+              decoration: InputDecoration(
+                labelText: 'confirm_new_password'.tr(context),
+                prefixIcon: const Icon(Icons.lock_open_outlined),
               ),
             ),
             const SizedBox(height: 20),
@@ -449,7 +473,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('BADILISHA'),
+                  : Text('change_button'.tr(context)),
             ),
             const SizedBox(height: 8),
           ],

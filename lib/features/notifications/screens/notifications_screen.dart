@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/translation_extension.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/auth_service.dart';
 import '../notifications_service.dart';
@@ -45,11 +46,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _loadData();
   }
 
-  Future<void> _delete(int id) async {
-    await NotificationsService.deleteNotification(id);
-    _loadData();
-  }
-
   @override
   Widget build(BuildContext context) {
     final unread = _notifications.where((n) => n['is_read'] == 0).length;
@@ -59,7 +55,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('Arifa'),
+            Text('notifications_title'.tr(context)),
             if (unread > 0) ...{
               const SizedBox(width: 8),
               Container(
@@ -88,9 +84,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (unread > 0)
             TextButton(
               onPressed: _markAllRead,
-              child: const Text(
-                'Soma Zote',
-                style: TextStyle(color: Colors.white, fontSize: 13),
+              child: Text(
+                'mark_all_as_read'.tr(context),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ),
         ],
@@ -127,142 +123,128 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     final IconData typeIcon = _getTypeIcon(type);
 
-    return Dismissible(
-      key: Key(notification['id'].toString()),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+    return GestureDetector(
+      onTap: () {
+        if (!isRead) {
+          _markRead(notification['id'] as int);
+        }
+        _showDetail(notification);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.errorColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      onDismissed: (_) => _delete(notification['id'] as int),
-      child: GestureDetector(
-        onTap: () {
-          if (!isRead) {
-            _markRead(notification['id'] as int);
-          }
-          _showDetail(notification);
-        },
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+          color: isRead
+              ? Colors.white
+              : AppTheme.primaryColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
             color: isRead
-                ? Colors.white
-                : AppTheme.primaryColor.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isRead
-                  ? Colors.transparent
-                  : AppTheme.primaryColor.withValues(alpha: 0.3),
+                ? Colors.transparent
+                : AppTheme.primaryColor.withOpacity(0.3),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: priorityColor.withOpacity(0.1),
+                shape: BoxShape.circle,
               ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Icon
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: priorityColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(typeIcon, color: priorityColor, size: 22),
-              ),
-              const SizedBox(width: 12),
+              child: Icon(typeIcon, color: priorityColor, size: 22),
+            ),
+            const SizedBox(width: 12),
 
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            notification['title'] ?? '',
-                            style: TextStyle(
-                              fontWeight: isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                              fontSize: 15,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification['title'] ?? '',
+                          style: TextStyle(
+                            fontWeight: isRead
+                                ? FontWeight.normal
+                                : FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                            fontSize: 15,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (!isRead)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.primaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      notification['message'] ?? '',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 13,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Type badge
+                      if (!isRead)
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: priorityColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            _getTypeLabel(type),
-                            style: TextStyle(
-                              color: priorityColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
                           ),
                         ),
-                        // Date
-                        Text(
-                          _formatDate(notification['created_at']),
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification['message'] ?? '',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
                     ),
-                  ],
-                ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Type badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: priorityColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          _getTypeLabel(type),
+                          style: TextStyle(
+                            color: priorityColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      // Date
+                      Text(
+                        _formatDate(notification['created_at']),
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -285,7 +267,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    color: AppTheme.primaryColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -321,7 +303,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Aina: ${_getTypeLabel(notification['type'] ?? '')}',
+                  '${'notification_type_label'.tr(context)}: ${_getTypeLabel(notification['type'] ?? '')}',
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,
@@ -339,7 +321,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('FUNGA'),
+              child: Text('close_button'.tr(context)),
             ),
           ],
         ),
@@ -358,14 +340,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             color: Colors.grey[300],
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Hakuna arifa',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 18),
+          Text(
+            'no_notifications_message'.tr(context),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 18),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Arifa zako zitaonekana hapa',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          Text(
+            'notifications_placeholder'.tr(context),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -390,15 +372,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String _getTypeLabel(String type) {
     switch (type) {
       case 'LOAN':
-        return 'Mkopo';
+        return 'notification_type_loan'.tr(context);
       case 'CONTRIBUTION':
-        return 'Mchango';
+        return 'notification_type_contribution'.tr(context);
       case 'REMINDER':
-        return 'Kumbusho';
+        return 'notification_type_reminder'.tr(context);
       case 'SYSTEM':
-        return 'Mfumo';
+        return 'notification_type_system'.tr(context);
       default:
-        return 'Tangazo';
+        return 'notification_type_announcement'.tr(context);
     }
   }
 
